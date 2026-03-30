@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { GooeyToaster } from "@/components/ui/goey-toaster";
+import { AuthProvider } from "@/lib/contexts/AuthContext";
+import { RegistroProvider } from "@/lib/contexts/RegistroContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +30,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AuthProvider>
+          <RegistroProvider>{children}</RegistroProvider>
+        </AuthProvider>
+        <GooeyToaster position="top-center" duration={4000} />
+      </body>
     </html>
   );
 }
