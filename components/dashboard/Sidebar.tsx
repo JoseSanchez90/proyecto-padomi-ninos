@@ -12,6 +12,7 @@ import {
   X,
   NotebookPen,
   Notebook,
+  Users,
 } from "lucide-react";
 import Image from "next/image";
 import Logo from "@/public/images/padomi-log.png";
@@ -41,35 +42,6 @@ export function Sidebar() {
     localStorage.setItem("padomi_sidebar", JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
 
-  // Helper para verificar si una ruta está activa
-  const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return pathname === "/dashboard" || pathname === "/";
-    }
-    return pathname?.startsWith(href);
-  };
-
-  // Items de navegación principales
-  const navItems: NavItem[] = [
-    {
-      label: "Ver Registros",
-      href: "/dashboard",
-      icon: <Notebook className="w-5 h-5 text-gray-800 shrink-0" />,
-    },
-    {
-      label: "Indicadores",
-      href: "/dashboard/indicadores",
-      icon: <BarChart3 className="w-5 h-5 text-gray-800 shrink-0" />,
-      description: "Métricas",
-    },
-    {
-      label: "Gráficos",
-      href: "/dashboard/graficos",
-      icon: <PieChart className="w-5 h-5 text-gray-800 shrink-0" />,
-      description: "Análisis",
-    },
-  ];
-
   // Manejar navegación
   const handleNavigate = (href: string) => {
     router.push(href);
@@ -82,14 +54,8 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 pt-2 bg-card flex items-center justify-between px-4 z-40">
-        <Image
-          src={Logo}
-          alt="Logo"
-          width={100}
-          height={100}
-          className="object-cover"
-        />
+      <div className="md:hidden fixed top-0 left-0 right-0 pt-2 bg-card flex items-center justify-between px-4 py-2 z-40">
+        <Image src={Logo} alt="Logo" className="w-20 object-cover" />
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 hover:bg-secondary rounded-lg transition-colors"
@@ -107,7 +73,7 @@ export function Sidebar() {
       <aside
         className={`
           fixed md:relative top-16 md:top-0 left-0 right-0 md:right-auto 
-          m-6 h-auto rounded-4xl bg-white border-r border-sidebar-border 
+          md:m-6 h-auto md:rounded-4xl bg-white border-r border-sidebar-border 
           flex flex-col transition-all duration-300 z-30
           ${sidebarOpen ? "w-full md:w-64" : "w-0 md:w-64"}
           overflow-hidden md:overflow-visible
@@ -115,13 +81,7 @@ export function Sidebar() {
       >
         {/* Header (Desktop) */}
         <div className="hidden md:flex items-center justify-center pt-4">
-          <Image
-            src={Logo}
-            alt="Logo"
-            width={160}
-            height={160}
-            className="object-cover"
-          />
+          <Image src={Logo} alt="Logo" className="w-32 2xl:w-40 object-cover" />
         </div>
 
         {/* Navigation */}
@@ -200,37 +160,118 @@ export function Sidebar() {
             <h3 className="text-md text-gray-800 font-bold px-4 mb-1">
               ANÁLISIS
             </h3>
-            {navItems.slice(1).map((item) => (
-              <button
-                key={item.href}
-                onClick={() => handleNavigate(item.href)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                  isActive(item.href)
-                    ? "bg-blue-600 text-sidebar-primary-foreground"
-                    : "text-sidebar-foreground hover:bg-blue-100 hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                {item.icon}
-                <div className="text-left">
-                  <span
-                    className={`text-sm ${
-                      isActive(item.href) ? "text-white" : "text-gray-800"
-                    } font-medium block`}
-                  >
-                    {item.label}
-                  </span>
-                  {item.description && (
-                    <span
-                      className={`text-xs ${
-                        isActive(item.href) ? "text-white" : "text-gray-800"
-                      }`}
-                    >
-                      {item.description}
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))}
+            {/* Indicadores */}
+            <button
+              onClick={() => handleNavigate("/dashboard/indicadores")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                pathname?.includes("/indicadores")
+                  ? "bg-blue-600 text-white"
+                  : "text-sidebar-foreground hover:bg-blue-100 hover:text-sidebar-accent-foreground"
+              }`}
+            >
+              <BarChart3
+                className={`w-5 h-5 ${
+                  pathname?.includes("/indicadores")
+                    ? "text-white"
+                    : "text-gray-800"
+                } shrink-0`}
+              />
+              <div className="text-left">
+                <span
+                  className={`text-sm ${
+                    pathname?.includes("/indicadores")
+                      ? "text-white"
+                      : "text-gray-800"
+                  } font-medium block`}
+                >
+                  Indicadores
+                </span>
+                <p
+                  className={`text-xs ${
+                    pathname?.includes("/indicadores")
+                      ? "text-white"
+                      : "text-gray-800"
+                  }`}
+                >
+                  Metricas
+                </p>
+              </div>
+            </button>
+
+            {/* Gráficos */}
+            <button
+              onClick={() => handleNavigate("/dashboard/graficos")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                pathname?.includes("/graficos")
+                  ? "bg-blue-600 text-white"
+                  : "text-sidebar-foreground hover:bg-blue-100 hover:text-sidebar-accent-foreground"
+              }`}
+            >
+              <PieChart
+                className={`w-5 h-5 ${
+                  pathname?.includes("/graficos")
+                    ? "text-white"
+                    : "text-gray-800"
+                } shrink-0`}
+              />
+              <div className="text-left">
+                <span
+                  className={`text-sm ${
+                    pathname?.includes("/graficos")
+                      ? "text-white"
+                      : "text-gray-800"
+                  } font-medium block`}
+                >
+                  Gráficos
+                </span>
+                <span
+                  className={`text-xs ${
+                    pathname?.includes("/graficos")
+                      ? "text-white"
+                      : "text-gray-800"
+                  }`}
+                >
+                  Análisis
+                </span>
+              </div>
+            </button>
+          </div>
+
+          {/* Sección: Gestión */}
+          <div className="space-y-2">
+            <h3 className="text-md text-gray-800 font-bold px-4 mb-1">
+              GESTIÓN
+            </h3>
+            <button
+              onClick={() => handleNavigate("/dashboard/personal")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                pathname?.includes("/personal")
+                  ? "bg-blue-600 text-white"
+                  : "text-sidebar-foreground hover:bg-blue-100 hover:text-sidebar-accent-foreground"
+              }`}
+            >
+              <Users className="w-5 h-5 shrink-0" />
+              <div className="text-left">
+                <span
+                  className={`text-sm ${
+                    pathname?.includes("/personal")
+                      ? "text-white"
+                      : "text-gray-800"
+                  } font-medium block`}
+                >
+                  Personal
+                </span>
+                <span
+                  className={`text-xs ${
+                    pathname?.includes("/personal")
+                      ? "text-white"
+                      : "text-gray-800"
+                  }`}
+                >
+                  Enfermeros
+                </span>
+              </div>
+            </button>
           </div>
         </nav>
 

@@ -9,13 +9,12 @@ import { initializeMockData } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
-  Check,
   CheckCircle,
   CircleX,
-  Filter,
   Plus,
   UsersRound,
-  ClipboardCheck, // ← Nuevo icono para Checklist
+  UserCheck,
+  Cable,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -27,14 +26,20 @@ export default function RegistroDashboard() {
   const totalExitosos = registros.filter(
     (r) => r.resultado === "Exitoso",
   ).length;
+
   const totalConIncidencias = registros.filter((r) => r.incidencias).length;
+
   const totalFallidos = registros.filter(
     (r) => r.resultado === "Fallido",
   ).length;
 
-  // Contar registros con checklist cumplido
-  const totalChecklistCumplido = registros.filter(
-    (r) => r.checklistCumplido === true,
+  const totalTienenDispositivo = registros.filter(
+    (r) => r.tieneDispositivo === true,
+  ).length;
+
+  // Filtrar por "Activo" (no "Atendido")
+  const totalPacientesActivos = registros.filter(
+    (r) => r.estadoPaciente === "Activo",
   ).length;
 
   useEffect(() => {
@@ -44,10 +49,12 @@ export default function RegistroDashboard() {
   return (
     <div className="p-6 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Pacientes</h1>
-          <p className="text-muted-foreground">
+      <div className="flex items-center justify-between gap-6">
+        <div className="mb-2">
+          <h1 className="text-2xl 2xl:text-3xl font-bold text-foreground">
+            Pacientes
+          </h1>
+          <p className="text-muted-foreground text-xs 2xl:text-sm">
             Gestione todos los registros y procedimientos de los pacientes
           </p>
         </div>
@@ -57,17 +64,19 @@ export default function RegistroDashboard() {
           onClick={() => router.push("/dashboard/registrar-paciente")}
           className="bg-blue-600 hover:bg-blue-800 transition-colors px-4 py-5 cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           Nuevo Paciente
         </Button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Quick Stats - Grid ajustado para 6 cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {/* Total de Registros */}
-        <Card className="p-4 bg-indigo-200 border-indigo-200">
+        <Card className="p-4 bg-indigo-100 border-indigo-200">
           <div className="flex items-center justify-between">
-            <p className="text-indigo-600 font-bold">Total de Registros</p>
+            <p className="text-indigo-600 font-bold text-xs 2xl:text-sm">
+              Total Registros
+            </p>
             <UsersRound className="w-6 h-6 text-indigo-600" />
           </div>
           <p className="text-2xl font-bold text-indigo-600 mt-1">
@@ -75,20 +84,38 @@ export default function RegistroDashboard() {
           </p>
         </Card>
 
-        <Card className="p-4 bg-teal-200 border-teal-200">
+        {/* Pacientes Activos */}
+        <Card className="p-4 bg-emerald-100 border-emerald-200">
           <div className="flex items-center justify-between">
-            <p className="text-teal-600 font-bold">Checklist Cumplido</p>
-            <ClipboardCheck className="w-6 h-6 text-teal-600" />
+            <p className="text-emerald-600 font-bold text-xs 2xl:text-sm">
+              Pacientes Activos
+            </p>
+            <UserCheck className="w-6 h-6 text-emerald-600" />
           </div>
-          <p className="text-2xl font-bold text-teal-600 mt-1">
-            {totalChecklistCumplido}
+          <p className="text-2xl font-bold text-emerald-600 mt-1">
+            {totalPacientesActivos}
+          </p>
+        </Card>
+
+        {/* Tienen Dispositivo */}
+        <Card className="p-4 bg-purple-100 border-purple-200">
+          <div className="flex items-center justify-between">
+            <p className="text-purple-600 font-bold text-xs 2xl:text-sm">
+              Tienen Dispositivo
+            </p>
+            <Cable className="w-6 h-6 text-purple-600" />
+          </div>
+          <p className="text-2xl font-bold text-purple-600 mt-1">
+            {totalTienenDispositivo}
           </p>
         </Card>
 
         {/* Procedimientos Exitosos */}
-        <Card className="p-4 bg-green-200 border-green-200">
+        <Card className="p-4 bg-green-100 border-green-200">
           <div className="flex items-center justify-between">
-            <p className="text-green-600 font-bold">Procedimientos Exitosos</p>
+            <p className="text-green-600 font-bold text-xs 2xl:text-sm">
+              Resultados Exitosos
+            </p>
             <CheckCircle className="w-6 h-6 text-green-600" />
           </div>
           <p className="text-2xl font-bold text-green-600 mt-1">
@@ -97,9 +124,11 @@ export default function RegistroDashboard() {
         </Card>
 
         {/* Con Incidencias */}
-        <Card className="p-4 bg-yellow-200 border-yellow-200">
+        <Card className="p-4 bg-yellow-100 border-yellow-200">
           <div className="flex items-center justify-between">
-            <p className="text-yellow-600 font-bold">Con Incidencias</p>
+            <p className="text-yellow-600 font-bold text-xs 2xl:text-sm">
+              Con Incidencias
+            </p>
             <AlertTriangle className="w-6 h-6 text-yellow-600" />
           </div>
           <p className="text-2xl font-bold text-yellow-600 mt-1">
@@ -108,9 +137,11 @@ export default function RegistroDashboard() {
         </Card>
 
         {/* Fallidos */}
-        <Card className="p-4 bg-red-200 border-red-200">
+        <Card className="p-4 bg-red-100 border-red-200">
           <div className="flex items-center justify-between">
-            <p className="text-red-600 font-bold">Fallidos</p>
+            <p className="text-red-600 font-bold text-xs 2xl:text-sm">
+              Fallidos
+            </p>
             <CircleX className="w-6 h-6 text-red-600" />
           </div>
           <p className="text-2xl font-bold text-red-600 mt-1">
@@ -119,7 +150,7 @@ export default function RegistroDashboard() {
         </Card>
       </div>
 
-      {/* Filters + Table (sin tabs) */}
+      {/* Filters + Table */}
       <div className="space-y-4">
         <RegistroFilters />
         <RegistroTable />

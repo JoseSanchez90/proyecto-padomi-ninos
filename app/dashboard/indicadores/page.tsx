@@ -43,8 +43,10 @@ export default function IndicadoresPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Indicadores</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="text-2xl 2xl:text-3xl font-bold text-foreground">
+          Indicadores
+        </h1>
+        <p className="text-xs 2xl:text-sm text-muted-foreground">
           Métricas y metas del desempeño clínico
         </p>
       </div>
@@ -75,7 +77,7 @@ export default function IndicadoresPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Procedimientos por Zona */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">
+              <h3 className="text-base 2xl:text-lg font-semibold text-foreground mb-4">
                 Procedimientos por Zona
               </h3>
               <div className="space-y-3">

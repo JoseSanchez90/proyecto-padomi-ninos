@@ -69,10 +69,10 @@ export default function RegistrarPacientePage() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-2xl 2xl:text-3xl font-bold text-foreground">
             {editId ? "Editar Paciente" : "Nuevo Paciente"}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs 2xl:text-sm text-muted-foreground mt-1">
             {editId
               ? "Modifica los datos del paciente registrado"
               : "Complete el formulario para registrar un nuevo paciente"}

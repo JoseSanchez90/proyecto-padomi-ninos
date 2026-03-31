@@ -104,6 +104,7 @@ export interface RegistroContextType {
   clearFilters: () => void;
   addMonthlyGoal: (goal: Omit<MonthlyGoal, "id" | "createdAt">) => void;
   updateMonthlyGoal: (id: string, goal: Partial<MonthlyGoal>) => void;
+  deleteMonthlyGoal?: (id: string) => void;
 }
 
 export interface UIContextType {
@@ -113,4 +114,37 @@ export interface UIContextType {
   setActiveSection: (section: "pacientes" | "indicadores" | "graficos") => void;
   toggleSidebar: () => void;
   toggleTheme: () => void;
+}
+
+export type RolPersonal = "Licenciado" | "Administrador";
+export type EstadoPersonal = "Habilitado" | "Ausente" | "No labora";
+
+export interface PersonalRecord {
+  id: string;
+  dni: string;
+  nombre: string;
+  fechaNacimiento: string;
+  edad: number;
+  rol: RolPersonal;
+  estado: EstadoPersonal;
+  especialidad?: string;
+  fechaIngreso: string;
+  telefono?: string;
+  email?: string;
+  direccion?: string;
+  licenciaProfesional?: string;
+  fotoUrl?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface PersonalContextType {
+  personal: PersonalRecord[];
+  addPersonal: (
+    data: Omit<PersonalRecord, "id" | "createdAt" | "updatedAt">,
+  ) => void;
+  updatePersonal: (id: string, data: Partial<PersonalRecord>) => void;
+  deletePersonal: (id: string) => void;
+  getPersonalByEstado: (estado: EstadoPersonal) => PersonalRecord[];
+  getLicenciadosActivos: () => PersonalRecord[];
 }

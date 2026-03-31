@@ -1,3 +1,4 @@
+// lib/contexts/RegistroContext.tsx
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -189,6 +190,13 @@ export function RegistroProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("padomi_monthly_goals", JSON.stringify(updatedGoals));
   };
 
+  // ✅ NUEVA FUNCIÓN: Eliminar meta mensual
+  const deleteMonthlyGoal = (id: string) => {
+    const updatedGoals = monthlyGoals.filter((g) => g.id !== id);
+    setMonthlyGoals(updatedGoals);
+    localStorage.setItem("padomi_monthly_goals", JSON.stringify(updatedGoals));
+  };
+
   return (
     <RegistroContext.Provider
       value={{
@@ -203,6 +211,7 @@ export function RegistroProvider({ children }: { children: React.ReactNode }) {
         clearFilters,
         addMonthlyGoal,
         updateMonthlyGoal,
+        deleteMonthlyGoal, // ← ✅ Agregar esta línea
       }}
     >
       {children}

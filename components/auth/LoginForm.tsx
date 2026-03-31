@@ -75,7 +75,11 @@ export function LoginForm() {
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button
+        type="submit"
+        className="w-full bg-blue-600 py-4 text-white hover:bg-blue-700 cursor-pointer"
+        disabled={isLoading}
+      >
         {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
       </Button>
 

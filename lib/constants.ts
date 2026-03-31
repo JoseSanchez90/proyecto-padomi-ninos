@@ -124,25 +124,6 @@ export const NOMBRE_DISPOSITIVO = [
 
 export const MATERIAL_SONDA = ["Siliconada", "PVC", "Latex"];
 
-export const PROFESIONALES = [
-  "Lic. Aguero",
-  "Lic. Blancas",
-  "Lic. Castillo",
-  "Lic. Chumpitaz",
-  "Lic. Cruz",
-  "Lic. Cupe",
-  "Lic. Echegaray",
-  "Lic. Epiquien",
-  "Lic. Flores",
-  "Lic. García",
-  "Lic. Matta",
-  "Lic. Ochoa",
-  "Lic. Peralta",
-  "Lic. Silva",
-  "Lic. Tarazona",
-  "Lic. Vera",
-];
-
 export const RESULTADOS = [
   "Exitoso",
   "Requiere seguimiento",

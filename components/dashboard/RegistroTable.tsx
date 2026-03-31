@@ -131,24 +131,28 @@ export function RegistroTable() {
             {/* Row Header */}
             <div className="flex items-center gap-4 p-4 bg-white">
               {/* Main Info */}
-              <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+              <div className="flex-1 grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
                 <div>
                   <p className="text-xs text-muted-foreground">Fecha</p>
-                  <p className="font-medium">{record.fecha}</p>
+                  <p className="text-xs 2xl:text-sm font-medium">
+                    {record.fecha}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Paciente</p>
-                  <p className="font-medium">{truncate(record.paciente)}</p>
+                  <p className="text-xs 2xl:text-sm font-medium">
+                    {truncate(record.paciente)}
+                  </p>
                 </div>
-                {/* <div>
+                <div>
                   <p className="text-xs text-muted-foreground">Procedimiento</p>
-                  <p className="font-medium">
+                  <p className="text-xs 2xl:text-sm font-medium">
                     {truncate(record.procedimiento, 20)}
                   </p>
-                </div> */}
+                </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Profesional</p>
-                  <p className="font-medium text-xs">
+                  <p className="text-xs 2xl:text-sm font-medium">
                     {truncate(record.profesionalACargo, 20)}
                   </p>
                 </div>
@@ -166,7 +170,7 @@ export function RegistroTable() {
                               : "bg-gray-400"
                       }`}
                     />
-                    <span className="font-medium capitalize text-xs">
+                    <span className="text-xs 2xl:text-sm font-medium capitalize">
                       {record.resultado}
                     </span>
                   </div>
@@ -181,52 +185,54 @@ export function RegistroTable() {
                         record.estadoPaciente,
                       )}`}
                     />
-                    <span className="font-medium capitalize text-xs">
+                    <span className="text-xs 2xl:text-sm font-medium capitalize">
                       {record.estadoPaciente}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Editar Button */}
-              <button
-                onMouseEnter={() =>
-                  router.prefetch(
-                    `/dashboard/registrar-paciente?edit=${record.id}`,
-                  )
-                }
-                onClick={(e) => {
-                  e.stopPropagation(); // Evitar que se expanda/colapse al hacer clic en editar
-                  router.push(
-                    `/dashboard/registrar-paciente?edit=${record.id}`,
-                  );
-                }}
-                className="p-2 bg-green-500 hover:bg-green-600 rounded-full cursor-pointer transition-colors text-white"
-                title="Editar registro"
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
+              <div className="flex flex-col md:flex-row gap-2 md:gap-4 items-center justify-center">
+                {/* Editar Button */}
+                <button
+                  onMouseEnter={() =>
+                    router.prefetch(
+                      `/dashboard/registrar-paciente?edit=${record.id}`,
+                    )
+                  }
+                  onClick={(e) => {
+                    e.stopPropagation(); // Evitar que se expanda/colapse al hacer clic en editar
+                    router.push(
+                      `/dashboard/registrar-paciente?edit=${record.id}`,
+                    );
+                  }}
+                  className="p-2 bg-green-500 hover:bg-green-600 rounded-full cursor-pointer transition-colors text-white"
+                  title="Editar registro"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
 
-              {/* Delete Button */}
-              <button
-                onClick={() => deleteRegistro(record.id)}
-                className="p-2 bg-red-600 hover:bg-red-800 rounded-full cursor-pointer transition-colors text-white"
-                title="Eliminar"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+                {/* Delete Button */}
+                <button
+                  onClick={() => deleteRegistro(record.id)}
+                  className="p-2 bg-red-600 hover:bg-red-800 rounded-full cursor-pointer transition-colors text-white"
+                  title="Eliminar"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
 
-              {/* Expand Button */}
-              <button
-                onClick={() =>
-                  setExpandedId(expandedId === record.id ? null : record.id)
-                }
-                className="p-2 bg-blue-600 hover:bg-blue-800 rounded-full cursor-pointer transition-colors"
-              >
-                <ChevronDown
-                  className={`w-4 h-4 text-white transition-transform ${expandedId === record.id ? "rotate-180" : ""}`}
-                />
-              </button>
+                {/* Expand Button */}
+                <button
+                  onClick={() =>
+                    setExpandedId(expandedId === record.id ? null : record.id)
+                  }
+                  className="p-2 bg-blue-600 hover:bg-blue-800 rounded-full cursor-pointer transition-colors"
+                >
+                  <ChevronDown
+                    className={`w-4 h-4 text-white transition-transform ${expandedId === record.id ? "rotate-180" : ""}`}
+                  />
+                </button>
+              </div>
             </div>
 
             {/* Expanded Content */}
@@ -309,10 +315,70 @@ export function RegistroTable() {
                       {record.profesionalACargo}
                     </p>
                   </div>
+                </div>
 
-                  {/* ✅ NUEVO: Dispositivo Médico */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-4">
+                  {/* Imágenes */}
+                  {record.imagenes && record.imagenes.length > 0 && (
+                    <div className="col-span-2 md:col-span-2 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl border border-blue-200 dark:border-blue-900/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ImageIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <p className="text-xs text-blue-900 dark:text-blue-200 font-semibold">
+                          Imágenes ({record.imagenes.length})
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {record.imagenes.map((img, index) => (
+                          <button
+                            key={index}
+                            onClick={() =>
+                              openImageViewer(record.imagenes || [], index)
+                            }
+                            className="relative group overflow-hidden rounded-xl border border-border hover:border-primary/50 transition-all cursor-pointer"
+                          >
+                            <img
+                              src={img}
+                              alt={`Imagen ${index + 1}`}
+                              className="w-full h-24 object-cover group-hover:scale-110 transition-transform"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                              <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                                Ver
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Incidencias */}
+                  {record.incidencias && (
+                    <div className="col-span-2 md:col-span-1 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                      <p className="flex items-center gap-2 text-sm text-yellow-900 dark:text-yellow-200 font-semibold mb-2">
+                        <TriangleAlert className="w-4 h-4 text-yellow-600" />
+                        Incidencia Reportada
+                      </p>
+                      {record.tipoIncidencia && (
+                        <div className="flex gap-2 text-yellow-800 dark:text-yellow-300 mb-1">
+                          <p className="text-xs">Tipo:</p>
+                          <p className="text-xs font-bold text-yellow-900 dark:text-yellow-300">
+                            {record.tipoIncidencia}
+                          </p>
+                        </div>
+                      )}
+                      <div className="gap-2 text-yellow-800 dark:text-yellow-300">
+                        <p className="text-xs">Descripcion:</p>
+                        <p className="text-xs font-bold text-yellow-900 dark:text-yellow-300">
+                          {record.descripcionIncidente || "Sin descripción"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dispositivo Médico */}
                   {record.tieneDispositivo && (
-                    <div className="md:col-span-2 lg:col-span-1 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-900/30">
+                    <div className="col-span-2 md:col-span-1 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-900/30">
                       <p className="text-xs text-purple-900 dark:text-purple-200 font-semibold mb-2 flex items-center gap-1">
                         <Stethoscope className="w-3 h-3" />
                         Dispositivo Médico
@@ -371,62 +437,10 @@ export function RegistroTable() {
                       </div>
                     </div>
                   )}
-
-                  {/* Incidencias */}
-                  {record.incidencias && (
-                    <div className="md:col-span-3 lg:col-span-4 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
-                      <p className="flex items-center gap-2 text-sm text-yellow-900 dark:text-yellow-200 font-semibold mb-2">
-                        <TriangleAlert className="w-4 h-4 text-yellow-600" />
-                        Incidencia Reportada
-                      </p>
-                      {record.tipoIncidencia && (
-                        <p className="text-xs text-yellow-800 dark:text-yellow-300 mb-1">
-                          Tipo: {record.tipoIncidencia}
-                        </p>
-                      )}
-                      <p className="text-xs text-yellow-900 dark:text-yellow-300">
-                        Descripcion:{" "}
-                        {record.descripcionIncidente || "Sin descripción"}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Imágenes */}
-                  {record.imagenes && record.imagenes.length > 0 && (
-                    <div className="md:col-span-3 lg:col-span-4 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl border border-blue-200 dark:border-blue-900/30">
-                      <div className="flex items-center gap-2 mb-2">
-                        <ImageIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        <p className="text-xs text-blue-900 dark:text-blue-200 font-semibold">
-                          Imágenes ({record.imagenes.length})
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                        {record.imagenes.map((img, index) => (
-                          <button
-                            key={index}
-                            onClick={() =>
-                              openImageViewer(record.imagenes || [], index)
-                            }
-                            className="relative group overflow-hidden rounded-xl border border-border hover:border-primary/50 transition-all cursor-pointer"
-                          >
-                            <img
-                              src={img}
-                              alt={`Imagen ${index + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                              <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                                Ver
-                              </span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
+                </div>
+                <div className="mt-4">
                   {/* Checkboxes de estado */}
-                  <div className="md:col-span-3 lg:col-span-4 flex flex-wrap gap-4 pt-2 border-t border-border/50">
+                  <div className="flex flex-wrap gap-4 pt-2 border-t border-border/50">
                     <label className="flex items-center gap-2 text-xs cursor-default">
                       <Checkbox
                         checked={record.checklistCumplido}
@@ -465,9 +479,9 @@ export function RegistroTable() {
 
       {/* Paginación */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2">
+        <div className="flex items-center justify-end md:justify-between px-2">
           {/* Información */}
-          <div className="text-xs text-muted-foreground">
+          <div className="hidden md:flex text-xs text-muted-foreground">
             Mostrando {startIndex + 1} -{" "}
             {Math.min(endIndex, filteredRegistros.length)} de{" "}
             {filteredRegistros.length} registros

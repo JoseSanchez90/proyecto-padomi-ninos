@@ -6,7 +6,6 @@ import {
   ZONAS,
   DISTRITOS,
   PROCEDIMIENTOS,
-  PROFESIONALES,
   RESULTADOS,
   DIAGNOSTICOS,
   INCIDENCIAS,
@@ -31,6 +30,7 @@ import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
 import { ImageUpload } from "./ImageUpload";
 import { gooeyToast } from "@/components/ui/goey-toaster";
 import { useRouter } from "next/navigation";
+import { getLicenciadosActivos } from "@/lib/helpers";
 
 interface RegistroFormProps {
   editMode?: boolean;
@@ -378,10 +378,10 @@ export function RegistroForm({
   return (
     <div className="bg-white rounded-4xl border border-gray-200 p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground">
+        <h2 className="text-xl 2xl:text-2xl font-bold text-foreground">
           {editMode ? "Editar Paciente" : "Registrar Paciente"}
         </h2>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="text-xs 2xl:text-sm text-muted-foreground mt-1">
           {editMode
             ? "Modifica los datos del paciente registrado"
             : "Ingrese los datos del paciente"}
@@ -390,7 +390,7 @@ export function RegistroForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Row 1: Fecha, Hora Inicio, Hora Fin, Duración */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-22 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 2xl:grid-cols-22 gap-2">
           <FieldGroup className="lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Fecha *</FieldLabel>
@@ -548,7 +548,8 @@ export function RegistroForm({
         </div>
 
         {/* Row 2: Profesional, Diagnóstico, Procedimiento */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 2xl:grid-cols-22 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-8 lg:grid-cols-11 2xl:grid-cols-22 gap-2">
+          {/* Profesional a Cargo - DINÁMICO desde Gestión de Personal */}
           <FieldGroup className="lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Profesional a Cargo *</FieldLabel>
@@ -559,14 +560,35 @@ export function RegistroForm({
                 <SelectTrigger className="h-9 text-sm">
                   <SelectValue placeholder="Seleccione" />
                 </SelectTrigger>
-                <SelectContent>
-                  {PROFESIONALES.map((prof, index) => (
-                    <SelectItem key={`${prof}-${index}`} value={prof}>
-                      {prof}
+                <SelectContent className="max-h-48">
+                  {/* Obtener licenciados activos */}
+                  {getLicenciadosActivos().length > 0 ? (
+                    getLicenciadosActivos().map((prof, index) => (
+                      <SelectItem key={`${prof}-${index}`} value={prof}>
+                        {prof}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      No hay licenciados registrados
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
+
+              {/* Mensaje informativo si no hay licenciados */}
+              {getLicenciadosActivos().length === 0 && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Registra licenciados en{" "}
+                  <button
+                    type="button"
+                    onClick={() => router.push("/dashboard/personal")}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Gestión de Personal
+                  </button>
+                </p>
+              )}
             </Field>
           </FieldGroup>
           <FieldGroup className="lg:col-span-3">
@@ -756,7 +778,7 @@ export function RegistroForm({
         </div>
 
         {/* Row 3: Checkboxes y Resultado */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-10 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-6 2xl:grid-cols-10 gap-2">
           <FieldGroup className="col-span-1">
             <Field>
               <FieldLabel className="text-xs">

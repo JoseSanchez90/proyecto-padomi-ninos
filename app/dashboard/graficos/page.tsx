@@ -11,10 +11,10 @@ export default function GraficosPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-2xl 2xl:text-3xl font-bold text-foreground">
           Gráficos y Análisis
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-xs 2xl:text-sm text-muted-foreground">
           Visualice datos y tendencias de procedimientos
         </p>
       </div>

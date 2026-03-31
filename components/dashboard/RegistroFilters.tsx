@@ -7,7 +7,6 @@ import {
   ZONAS,
   DISTRITOS,
   PROCEDIMIENTOS,
-  PROFESIONALES,
   RESULTADOS,
   DIAGNOSTICOS,
   ESTADO_PACIENTE,
@@ -26,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
 import { ChevronDown, X, SlidersHorizontal } from "lucide-react";
 import type { FilterState } from "@/lib/types";
+import { getLicenciadosActivos } from "@/lib/helpers";
 
 export function RegistroFilters() {
   const { filters, applyFilters, clearFilters } = useRegistro();
@@ -62,7 +62,7 @@ export function RegistroFilters() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
-          <h3 className="font-semibold text-sm text-foreground">Filtros</h3>
+          <h3 className="font-semibold text-lg text-foreground">Filtros</h3>
           {activeFilterCount > 0 && (
             <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-medium">
               {activeFilterCount}
@@ -408,16 +408,19 @@ export function RegistroFilters() {
                   <SelectTrigger className="h-9 w-full">
                     <SelectValue placeholder="Seleccionar" />
                   </SelectTrigger>
-                  <SelectContent className="text-xs max-h-48">
-                    {PROFESIONALES.map((prof, index) => (
-                      <SelectItem
-                        key={`${prof}-${index}`}
-                        value={prof}
-                        className="text-xs"
-                      >
-                        {prof}
+                  <SelectContent className="max-h-48">
+                    {/* Obtener licenciados activos */}
+                    {getLicenciadosActivos().length > 0 ? (
+                      getLicenciadosActivos().map((prof, index) => (
+                        <SelectItem key={`${prof}-${index}`} value={prof}>
+                          {prof}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No hay licenciados registrados
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </FieldGroup>
