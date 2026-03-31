@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { calcularEdad } from "@/components/dashboard/RegistroForm";
 import { initializeMockData } from "@/lib/mockData";
+import { gooeyToast } from "@/components/ui/goey-toaster";
 
 // Tipos locales (puedes moverlos a lib/types.ts)
 type RolPersonal = "Licenciado" | "Administrador";
@@ -156,36 +157,67 @@ export default function GestionPersonalPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // ✅ Validación básica con toast de error
     if (!formData.dni || !formData.nombre || !formData.fechaNacimiento) {
-      alert("Complete los campos obligatorios");
+      gooeyToast.error("Campos requeridos", {
+        description: "Por favor completa DNI, Nombre y Fecha de Nacimiento",
+        duration: 4000,
+      });
       return;
     }
 
-    // Sin updatedAt para evitar error de tipo
+    // ✅ Validación de DNI (8 dígitos)
+    if (formData.dni.length !== 8) {
+      gooeyToast.error("DNI inválido", {
+        description: "El DNI debe tener exactamente 8 dígitos",
+        duration: 4000,
+      });
+      return;
+    }
+
     const personalData: Omit<PersonalRecord, "id" | "createdAt"> = {
       ...formData,
     };
 
-    if (editingPerson) {
-      // Actualizar existente
-      setPersonal((prev) =>
-        prev.map((p) =>
-          p.id === editingPerson.id ? { ...p, ...personalData } : p,
-        ),
-      );
-    } else {
-      // Crear nuevo
-      const newPerson: PersonalRecord = {
-        ...personalData,
-        id: `personal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date().toISOString(),
-      };
-      setPersonal((prev) => [newPerson, ...prev]);
-    }
+    try {
+      if (editingPerson) {
+        // ✅ Actualizar existente con toast de éxito
+        setPersonal((prev) =>
+          prev.map((p) =>
+            p.id === editingPerson.id ? { ...p, ...personalData } : p,
+          ),
+        );
 
-    // Reset y cerrar
-    resetForm();
-    setIsDialogOpen(false);
+        gooeyToast.success("Actualizado", {
+          description: `${formData.nombre} ha sido actualizado correctamente`,
+          duration: 3000,
+        });
+      } else {
+        // ✅ Crear nuevo con toast de éxito
+        const newPerson: PersonalRecord = {
+          ...personalData,
+          id: `personal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: new Date().toISOString(),
+        };
+        setPersonal((prev) => [newPerson, ...prev]);
+
+        gooeyToast.success("Registrado", {
+          description: `${formData.nombre} ha sido agregado al personal`,
+          duration: 3000,
+        });
+      }
+
+      // Reset y cerrar después de éxito
+      resetForm();
+      setIsDialogOpen(false);
+    } catch (error) {
+      // ✅ Toast de error si algo falla
+      gooeyToast.error("❌ Error", {
+        description: "No se pudo guardar el registro. Intenta nuevamente.",
+        duration: 4000,
+      });
+      console.error("Error saving personal:", error);
+    }
   };
 
   // Editar persona existente
@@ -207,11 +239,29 @@ export default function GestionPersonalPage() {
     setIsDialogOpen(true);
   };
 
-  // Eliminar persona
   const handleDelete = (id: string) => {
-    if (confirm("¿Eliminar este registro de personal?")) {
-      setPersonal((prev) => prev.filter((p) => p.id !== id));
-    }
+    // ✅ Primero mostrar toast de confirmación
+    gooeyToast.warning("¿Eliminar registro?", {
+      description: "Esta acción no se puede deshacer",
+      duration: 5000,
+      action: {
+        label: "Sí, eliminar",
+        onClick: () => {
+          // ✅ Buscar el nombre para mostrar en el toast de éxito
+          const personToDelete = personal.find((p) => p.id === id);
+          const nombre = personToDelete?.nombre || "Este registro";
+
+          // ✅ Eliminar del estado
+          setPersonal((prev) => prev.filter((p) => p.id !== id));
+
+          // ✅ Toast de éxito después de eliminar
+          gooeyToast.success("Eliminado", {
+            description: `${nombre} ha sido eliminado del personal`,
+            duration: 3000,
+          });
+        },
+      },
+    });
   };
 
   // Resetear formulario
@@ -251,10 +301,10 @@ export default function GestionPersonalPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-2xl 2xl:text-3xl font-bold text-foreground">
             Gestión de Personal
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs 2xl:text-sm text-muted-foreground">
             Administre el equipo de enfermeros licenciados
           </p>
         </div>
@@ -267,13 +317,13 @@ export default function GestionPersonalPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
+            <Button className="bg-blue-600 hover:bg-blue-800 transition-colors px-4 py-5 cursor-pointer">
               <UserPlus className="w-4 h-4" />
               Nuevo Enfermero
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="max-w-4xl! max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-xs max-h-[80vh] md:max-w-4xl md:max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingPerson
@@ -284,21 +334,8 @@ export default function GestionPersonalPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Datos básicos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <FieldGroup>
-                  <FieldLabel className="text-xs">DNI *</FieldLabel>
-                  <Input
-                    type="text"
-                    placeholder="12345678"
-                    value={formData.dni}
-                    onChange={(e) => handleInputChange("dni", e.target.value)}
-                    className="h-9 text-sm"
-                    maxLength={8}
-                    required
-                  />
-                </FieldGroup>
-
-                <FieldGroup className="lg:col-span-2">
+              <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+                <FieldGroup className="col-span-2">
                   <FieldLabel className="text-xs">Nombre Completo *</FieldLabel>
                   <Input
                     type="text"
@@ -312,7 +349,20 @@ export default function GestionPersonalPage() {
                   />
                 </FieldGroup>
 
-                <FieldGroup>
+                <FieldGroup className="col-span-1">
+                  <FieldLabel className="text-xs">DNI *</FieldLabel>
+                  <Input
+                    type="text"
+                    placeholder="12345678"
+                    value={formData.dni}
+                    onChange={(e) => handleInputChange("dni", e.target.value)}
+                    className="h-9 text-sm"
+                    maxLength={8}
+                    required
+                  />
+                </FieldGroup>
+
+                <FieldGroup className="col-span-1">
                   <FieldLabel className="text-xs">
                     Fecha Nacimiento *
                   </FieldLabel>
@@ -328,7 +378,7 @@ export default function GestionPersonalPage() {
                   />
                 </FieldGroup>
 
-                <FieldGroup>
+                <FieldGroup className="col-span-1">
                   <FieldLabel className="text-xs">Edad</FieldLabel>
                   <Input
                     type="number"
@@ -338,7 +388,7 @@ export default function GestionPersonalPage() {
                   />
                 </FieldGroup>
 
-                <FieldGroup>
+                <FieldGroup className="col-span-1">
                   <FieldLabel className="text-xs">Rol *</FieldLabel>
                   <Select
                     value={formData.rol}
@@ -359,7 +409,7 @@ export default function GestionPersonalPage() {
                   </Select>
                 </FieldGroup>
 
-                <FieldGroup>
+                <FieldGroup className="col-span-1">
                   <FieldLabel className="text-xs">Estado *</FieldLabel>
                   <Select
                     value={formData.estado}
@@ -382,7 +432,7 @@ export default function GestionPersonalPage() {
               </div>
 
               {/* Datos profesionales */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 <FieldGroup>
                   <FieldLabel className="text-xs">Fecha de Ingreso</FieldLabel>
                   <Input
@@ -412,7 +462,7 @@ export default function GestionPersonalPage() {
               </div>
 
               {/* Contacto */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 <FieldGroup>
                   <FieldLabel className="text-xs flex items-center gap-1">
                     <Phone className="w-3 h-3" /> Teléfono
@@ -441,7 +491,7 @@ export default function GestionPersonalPage() {
                   />
                 </FieldGroup>
 
-                <FieldGroup className="lg:col-span-3">
+                <FieldGroup className="col-span-2 lg:col-span-3">
                   <FieldLabel className="text-xs flex items-center gap-1">
                     <MapPin className="w-3 h-3" /> Dirección
                   </FieldLabel>
@@ -461,15 +511,31 @@ export default function GestionPersonalPage() {
               <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button
                   type="button"
+                  className="cursor-pointer"
                   variant="ghost"
                   onClick={() => {
+                    // Toast informativo al cancelar (opcional)
+                    gooeyToast.info("Cancelado", {
+                      description: "Los cambios no han sido guardados",
+                      duration: 2000,
+                    });
+
                     setIsDialogOpen(false);
                     resetForm();
                   }}
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+
+                <Button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                  disabled={
+                    !formData.dni ||
+                    !formData.nombre ||
+                    !formData.fechaNacimiento
+                  }
+                >
                   {editingPerson ? "Actualizar" : "Guardar"}
                 </Button>
               </div>
@@ -517,12 +583,44 @@ export default function GestionPersonalPage() {
       {/* Tabla de personal */}
       <div className="bg-white rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
-          <Table className="w-full">
+          {/* Indicador visual de scroll (opcional) */}
+          <div className="md:hidden px-4 py-2 bg-blue-50/50 border-b border-blue-100 flex justify-between items-center gap-2 text-xs text-blue-700">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16l-4-4m0 0l4-4m-4 4h18"
+              />
+            </svg>
+            <span>Desliza hacia los lados para ver más datos</span>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
+            </svg>
+          </div>
+          <Table className="w-full min-w-200">
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="text-left pl-4">Nombre</TableHead>
                 <TableHead className="text-center">DNI</TableHead>
                 <TableHead className="text-center">Edad</TableHead>
+                <TableHead className="text-center">Telefono</TableHead>
+                <TableHead className="text-center">Email</TableHead>
                 <TableHead className="text-center">Rol</TableHead>
                 <TableHead className="text-center">Estado</TableHead>
                 <TableHead className="text-center">Ingreso</TableHead>
@@ -571,6 +669,16 @@ export default function GestionPersonalPage() {
                       {person.edad} años
                     </TableCell>
 
+                    {/* Telefono - center */}
+                    <TableCell className="text-center text-sm">
+                      {person.telefono}
+                    </TableCell>
+
+                    {/* Email - center */}
+                    <TableCell className="text-center text-sm">
+                      {person.email}
+                    </TableCell>
+
                     {/* Rol - center */}
                     <TableCell className="text-center">
                       <Badge variant="outline" className="text-xs px-2 py-0.5">
@@ -592,24 +700,24 @@ export default function GestionPersonalPage() {
 
                     {/* Acciones - right align */}
                     <TableCell className="text-center">
-                      <div className="flex justify-center gap-1">
+                      <div className="flex justify-center gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 hover:bg-blue-100 hover:text-blue-700"
+                          className="h-8 w-8 hover:bg-blue-100 hover:text-blue-700 cursor-pointer"
                           onClick={() => handleEdit(person)}
                           title="Editar"
                         >
-                          <Edit2 className="w-3.5 h-3.5" />
+                          <Edit2 className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 hover:bg-red-100 hover:text-red-700"
+                          className="h-8 w-8 hover:bg-red-100 hover:text-red-700 cursor-pointer"
                           onClick={() => handleDelete(person.id)}
                           title="Eliminar"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </TableCell>

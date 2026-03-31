@@ -18,7 +18,7 @@ export default function LoginPage() {
   }, [isAuthenticated, router]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 transition-colors">
+    <div className="min-h-screen bg-neutral-100 flex items-center justify-center p-4 transition-colors">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="flex flex-col items-center mb-8 animate-in fade-in duration-500">
@@ -29,14 +29,14 @@ export default function LoginPage() {
             height={240}
             className="object-cover"
           />
-          <p className="text-2xl text-gray-600 font-semibold mt-2">
+          <p className="text-xl 2xl:text-2xl text-blue-800 font-semibold md:mt-2">
             Sistema de Gestión Clínica
           </p>
         </div>
 
         {/* Login Card */}
         <div className="bg-card border border-border rounded-xl p-6 md:p-8 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-          <h2 className="text-2xl font-semibold text-foreground mb-6">
+          <h2 className="text-lg 2xl:text-2xl text-center font-bold text-foreground mb-6">
             Iniciar Sesión
           </h2>
           <LoginForm />

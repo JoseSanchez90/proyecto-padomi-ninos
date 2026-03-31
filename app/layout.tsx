@@ -34,7 +34,7 @@ export default function RootLayout({
         <AuthProvider>
           <RegistroProvider>{children}</RegistroProvider>
         </AuthProvider>
-        <GooeyToaster position="top-center" duration={4000} />
+        <GooeyToaster />
       </body>
     </html>
   );

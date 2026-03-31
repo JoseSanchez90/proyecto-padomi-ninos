@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { ImageViewer } from "./ImageViewer";
 import { useRouter } from "next/navigation";
+import { gooeyToast } from "@/components/ui/goey-toaster";
 
 const ITEMS_PER_PAGE = 7;
 
@@ -112,6 +113,24 @@ export function RegistroTable() {
     return `${day}/${month}/${year}`;
   };
 
+  // Agregar al inicio del componente RegistroTable:
+  const handleDeleteConfirm = (id: string, paciente: string) => {
+    gooeyToast.warning("¿Eliminar registro?", {
+      description: "Esta acción no se puede deshacer",
+      duration: 5000,
+      action: {
+        label: "Sí, eliminar",
+        onClick: () => {
+          deleteRegistro(id);
+          gooeyToast.success("Eliminado", {
+            description: `El registro de ${paciente} ha sido eliminado`,
+            duration: 3000,
+          });
+        },
+      },
+    });
+  };
+
   return (
     <>
       <ImageViewer
@@ -194,7 +213,9 @@ export function RegistroTable() {
 
               <div className="flex flex-col md:flex-row gap-2 md:gap-4 items-center justify-center">
                 {/* Editar Button */}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onMouseEnter={() =>
                     router.prefetch(
                       `/dashboard/registrar-paciente?edit=${record.id}`,
@@ -206,32 +227,38 @@ export function RegistroTable() {
                       `/dashboard/registrar-paciente?edit=${record.id}`,
                     );
                   }}
-                  className="p-2 bg-green-500 hover:bg-green-600 rounded-full cursor-pointer transition-colors text-white"
+                  className="h-8 w-8 hover:bg-green-100 hover:text-green-800 cursor-pointer"
                   title="Editar registro"
                 >
                   <Pencil className="w-4 h-4" />
-                </button>
+                </Button>
 
                 {/* Delete Button */}
-                <button
-                  onClick={() => deleteRegistro(record.id)}
-                  className="p-2 bg-red-600 hover:bg-red-800 rounded-full cursor-pointer transition-colors text-white"
+                <Button
+                  onClick={() =>
+                    handleDeleteConfirm(record.id, record.paciente)
+                  }
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-red-100 hover:text-red-800 cursor-pointer"
                   title="Eliminar"
                 >
                   <Trash2 className="w-4 h-4" />
-                </button>
+                </Button>
 
                 {/* Expand Button */}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() =>
                     setExpandedId(expandedId === record.id ? null : record.id)
                   }
-                  className="p-2 bg-blue-600 hover:bg-blue-800 rounded-full cursor-pointer transition-colors"
+                  className="h-8 w-8 bg-blue-500 hover:bg-blue-600 cursor-pointer"
                 >
                   <ChevronDown
                     className={`w-4 h-4 text-white transition-transform ${expandedId === record.id ? "rotate-180" : ""}`}
                   />
-                </button>
+                </Button>
               </div>
             </div>
 

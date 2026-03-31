@@ -95,7 +95,7 @@ export function ImageUpload({
       />
 
       {/* Grid de cuadrados */}
-      <div className="grid grid-cols-6 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
         {slots.map((slot) => (
           <div
             key={slot.index}

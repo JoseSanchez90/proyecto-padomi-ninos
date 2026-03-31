@@ -51,6 +51,11 @@ export function RegistroFilters() {
     clearFilters();
   };
 
+  // Verificar si hay al menos 1 filtro activo
+  const hasActiveFilters = Object.values(localFilters).some(
+    (value) => value !== undefined && value !== "" && value !== false,
+  );
+
   // "false" SÍ cuenta como filtro activo
   const activeFilterCount = Object.values(localFilters).filter(
     (v) => v !== undefined && v !== "",
@@ -81,15 +86,15 @@ export function RegistroFilters() {
               Limpiar
             </Button>
           )}
-          <button
+          <Button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors cursor-pointer"
+            className="h-8 w-8 bg-blue-500 hover:bg-blue-600 cursor-pointer"
             aria-label={isOpen ? "Contraer filtros" : "Expandir filtros"}
           >
             <ChevronDown
               className={`w-4 h-4 text-white transition-transform ${isOpen ? "rotate-180" : ""}`}
             />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -529,12 +534,23 @@ export function RegistroFilters() {
           </div>
 
           {/* Apply Button */}
-          <div className="flex justify-end pt-3">
+          <div className="flex justify-end pt-3 gap-2">
             <Button
               onClick={handleApplyFilters}
-              className="bg-blue-600 hover:bg-blue-700 py-4 px-6 cursor-pointer"
+              disabled={!hasActiveFilters} // ← Deshabilitado si no hay filtros
+              className={`py-4 px-6 cursor-pointer transition-all ${
+                hasActiveFilters
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
             >
               Aplicar Filtros
+            </Button>
+            <Button
+              onClick={() => setIsOpen(false)}
+              className="bg-gray-200 hover:bg-gray-300 text-black py-4 px-6 cursor-pointer"
+            >
+              Cancelar
             </Button>
           </div>
         </div>

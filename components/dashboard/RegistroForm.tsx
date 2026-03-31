@@ -246,18 +246,6 @@ export function RegistroForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !formData.paciente ||
-      !formData.dni ||
-      !formData.fecha ||
-      !formData.procedimiento
-    ) {
-      gooeyToast.error("Campos requeridos", {
-        description: "Por favor complete los campos obligatorios",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
       const registroData = {
@@ -301,14 +289,14 @@ export function RegistroForm({
         updateRegistro(initialData.id, registroData);
         gooeyToast.success("Registro actualizado", {
           description: `Los cambios han sido guardados`,
-          duration: 4000,
+          duration: 3000,
         });
       } else {
         // MODO CREACIÓN: Agregar nuevo registro
         addRegistro(registroData);
         gooeyToast.success("Registro guardado", {
           description: `El paciente ha sido registrado correctamente`,
-          duration: 4000,
+          duration: 3000,
         });
       }
 
@@ -390,8 +378,8 @@ export function RegistroForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Row 1: Fecha, Hora Inicio, Hora Fin, Duración */}
-        <div className="grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 2xl:grid-cols-22 gap-2">
-          <FieldGroup className="lg:col-span-2">
+        <div className="grid grid-cols-2 md:grid-cols-12 2xl:grid-cols-22 gap-2">
+          <FieldGroup className="col-span-1 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Fecha *</FieldLabel>
               <Input
@@ -403,7 +391,7 @@ export function RegistroForm({
               />
             </Field>
           </FieldGroup>
-          <FieldGroup className="lg:col-span-2">
+          <FieldGroup className="col-span-1 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Hora Inicio *</FieldLabel>
               <Input
@@ -416,7 +404,7 @@ export function RegistroForm({
               />
             </Field>
           </FieldGroup>
-          <FieldGroup className="lg:col-span-2">
+          <FieldGroup className="col-span-1 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Hora Fin *</FieldLabel>
               <Input
@@ -427,7 +415,7 @@ export function RegistroForm({
               />
             </Field>
           </FieldGroup>
-          <FieldGroup className="lg:col-span-2">
+          <FieldGroup className="col-span-1 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Duración (min)</FieldLabel>
               <Input
@@ -438,7 +426,7 @@ export function RegistroForm({
               />
             </Field>
           </FieldGroup>
-          <FieldGroup className="lg:col-span-4">
+          <FieldGroup className="col-span-2 lg:col-span-4">
             <Field>
               <FieldLabel className="text-xs">Paciente *</FieldLabel>
               <Input
@@ -451,7 +439,7 @@ export function RegistroForm({
               />
             </Field>
           </FieldGroup>
-          <FieldGroup className="lg:col-span-2">
+          <FieldGroup className="col-span-1 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">DNI *</FieldLabel>
               <Input
@@ -464,7 +452,7 @@ export function RegistroForm({
               />
             </Field>
           </FieldGroup>
-          <FieldGroup className="lg:col-span-2">
+          <FieldGroup className="col-span-1 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Fecha Nacimiento *</FieldLabel>
               <Input
@@ -486,7 +474,7 @@ export function RegistroForm({
               />
             </Field>
           </FieldGroup>
-          <FieldGroup>
+          <FieldGroup className="col-span-1">
             <Field>
               <FieldLabel className="text-xs">Edad</FieldLabel>
               <Input
@@ -498,7 +486,7 @@ export function RegistroForm({
               />
             </Field>
           </FieldGroup>
-          <FieldGroup className="col-span-2">
+          <FieldGroup className="col-span-1 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Zona *</FieldLabel>
               <Select
@@ -521,7 +509,7 @@ export function RegistroForm({
               </Select>
             </Field>
           </FieldGroup>
-          <FieldGroup className="col-span-3">
+          <FieldGroup className="col-span-2 lg:col-span-3">
             <Field>
               <FieldLabel className="text-xs">Distrito *</FieldLabel>
               <Select
@@ -548,9 +536,9 @@ export function RegistroForm({
         </div>
 
         {/* Row 2: Profesional, Diagnóstico, Procedimiento */}
-        <div className="grid grid-cols-1 md:grid-cols-8 lg:grid-cols-11 2xl:grid-cols-22 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-11 2xl:grid-cols-22 gap-2">
           {/* Profesional a Cargo - DINÁMICO desde Gestión de Personal */}
-          <FieldGroup className="lg:col-span-2">
+          <FieldGroup className="col-span-2 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Profesional a Cargo *</FieldLabel>
               <Select
@@ -591,7 +579,7 @@ export function RegistroForm({
               )}
             </Field>
           </FieldGroup>
-          <FieldGroup className="lg:col-span-3">
+          <FieldGroup className="col-span-2 lg:col-span-3">
             <Field>
               <FieldLabel className="text-xs">
                 Diagnóstico Principal *
@@ -615,7 +603,7 @@ export function RegistroForm({
               </Select>
             </Field>
           </FieldGroup>
-          <FieldGroup className="lg:col-span-4">
+          <FieldGroup className="col-span-2 lg:col-span-4">
             <Field>
               <FieldLabel className="text-xs">Procedimiento *</FieldLabel>
               <Select
@@ -637,7 +625,7 @@ export function RegistroForm({
           </FieldGroup>
 
           {/* ¿Tiene Dispositivo? */}
-          <FieldGroup className="lg:col-span-2">
+          <FieldGroup className="col-span-1 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">¿Tiene Dispositivo? *</FieldLabel>
               <Select
@@ -663,7 +651,7 @@ export function RegistroForm({
 
           {/* Nombre Dispositivo (solo si tiene dispositivo) */}
           {formData.tieneDispositivo === "Si" && (
-            <FieldGroup className="lg:col-span-3">
+            <FieldGroup className="col-span-1 lg:col-span-3">
               <Field>
                 <FieldLabel className="text-xs">Nombre Dispositivo</FieldLabel>
                 <Select
@@ -693,7 +681,7 @@ export function RegistroForm({
           {/* Material de Sonda (solo si el dispositivo empieza con "Sonda") */}
           {formData.tieneDispositivo === "Si" &&
             formData.nombreDispositivo?.startsWith("Sonda") && (
-              <FieldGroup className="lg:col-span-2">
+              <FieldGroup className="col-span-1 lg:col-span-2">
                 <Field>
                   <FieldLabel className="text-xs">Material de Sonda</FieldLabel>
                   <Select
@@ -744,7 +732,7 @@ export function RegistroForm({
 
           {/* Fecha de Colocación (solo si tiene dispositivo) */}
           {formData.tieneDispositivo === "Si" && (
-            <FieldGroup className="lg:col-span-2">
+            <FieldGroup className="col-span-1 lg:col-span-2">
               <Field>
                 <FieldLabel className="text-xs">Fecha Colocación</FieldLabel>
                 <Input
@@ -761,7 +749,7 @@ export function RegistroForm({
 
           {/* Fecha Próxima Colocación (solo si tiene dispositivo) */}
           {formData.tieneDispositivo === "Si" && (
-            <FieldGroup className="lg:col-span-2">
+            <FieldGroup className="col-span-1 lg:col-span-2">
               <Field>
                 <FieldLabel className="text-xs">Fecha Cambio</FieldLabel>
                 <Input
@@ -778,12 +766,10 @@ export function RegistroForm({
         </div>
 
         {/* Row 3: Checkboxes y Resultado */}
-        <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-6 2xl:grid-cols-10 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-6 2xl:grid-cols-10 gap-2">
           <FieldGroup className="col-span-1">
             <Field>
-              <FieldLabel className="text-xs">
-                Procedimiento Repetido *
-              </FieldLabel>
+              <FieldLabel className="text-xs">Proced. Repetido *</FieldLabel>
               <Select
                 value={formData.procedimientoRepetido}
                 onValueChange={(v: "" | "Si" | "No") =>
@@ -868,7 +854,7 @@ export function RegistroForm({
             </Field>
           </FieldGroup>
 
-          <FieldGroup className="lg:col-span-1">
+          <FieldGroup className="col-span-1 lg:col-span-1">
             <Field>
               <FieldLabel className="text-xs">Incidencias *</FieldLabel>
               <Select
@@ -889,7 +875,7 @@ export function RegistroForm({
           </FieldGroup>
 
           {formData.incidencias === "Si" && (
-            <FieldGroup className="lg:col-span-1">
+            <FieldGroup className="col-span-1 lg:col-span-1">
               <Field>
                 <FieldLabel className="text-xs">Tipo de Incidencia</FieldLabel>
                 <Select
@@ -912,7 +898,7 @@ export function RegistroForm({
           )}
 
           {formData.incidencias === "Si" && (
-            <div className="col-span-4 gap-2">
+            <div className="col-span-2 md:col-span-4 gap-2">
               <FieldGroup>
                 <Field>
                   <FieldLabel className="text-xs">
@@ -959,16 +945,16 @@ export function RegistroForm({
         </div>
 
         {/* Row 4: Image Upload */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
-          <FieldGroup className="lg:col-span-5">
+        <div className="grid grid-cols-4 gap-2">
+          <FieldGroup className="col-span-4">
             <Field>
               <FieldLabel className="text-xs">
-                Imágenes (opcional, máx. 6)
+                Imágenes (opcional, máx. 4)
               </FieldLabel>
               <ImageUpload
                 images={imagenes}
                 onImagesChange={setImagenes}
-                maxImages={6}
+                maxImages={4}
               />
             </Field>
           </FieldGroup>
@@ -994,28 +980,14 @@ export function RegistroForm({
             type="button"
             variant="outline"
             onClick={() => {
-              // ✅ Mensaje diferente según el modo
-              const confirmMessage = editMode
-                ? "¿Desea descartar los cambios?"
-                : "¿Desea cancelar el registro del paciente?";
-
-              const confirmTitle = editMode
-                ? "Descartar cambios"
-                : "Cancelar registro";
-
               // Mostrar toast con acción de confirmación
-              gooeyToast.warning(confirmTitle, {
-                description: confirmMessage,
-                duration: 5000,
-                action: {
-                  label: "Sí, cancelar",
-                  onClick: () => {
-                    // ✅ Redirigir al dashboard descartando cambios
-                    router.push("/dashboard");
-                    router.refresh();
-                  },
-                },
+              gooeyToast.info("Cancelado", {
+                description: "El registro ha sido descartado",
+                duration: 3000,
               });
+              // Redirigir al dashboard descartando cambios
+              router.push("/dashboard");
+              router.refresh();
             }}
             className="bg-gray-200 hover:bg-gray-300 cursor-pointer px-6 py-4"
           >
