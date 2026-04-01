@@ -1,5 +1,8 @@
-// Helper para obtener licenciados activos desde localStorage
+// lib/helpers.ts
+
+// ✅ Helper simple para obtener licenciados activos desde localStorage
 export const getLicenciadosActivos = (): string[] => {
+  // Solo ejecutar en cliente
   if (typeof window === "undefined") return [];
 
   try {
@@ -11,7 +14,7 @@ export const getLicenciadosActivos = (): string[] => {
     // Filtrar: solo Licenciados con estado "Habilitado"
     return personal
       .filter((p) => p.rol === "Licenciado" && p.estado === "Habilitado")
-      .map((p) => p.nombre) // Retornar solo el nombre para el Select
+      .map((p) => p.nombre)
       .sort((a, b) => a.localeCompare(b)); // Ordenar alfabéticamente
   } catch (error) {
     console.error("Error loading licenciados:", error);

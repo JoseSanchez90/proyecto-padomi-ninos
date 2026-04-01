@@ -5,7 +5,6 @@ import { RegistroTable } from "@/components/dashboard/RegistroTable";
 import { RegistroFilters } from "@/components/dashboard/RegistroFilters";
 import { useRegistro } from "@/lib/contexts/RegistroContext";
 import { Card } from "@/components/ui/card";
-import { initializeMockData } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
@@ -33,18 +32,18 @@ export default function RegistroDashboard() {
     (r) => r.resultado === "Fallido",
   ).length;
 
-  const totalTienenDispositivo = registros.filter(
-    (r) => r.tieneDispositivo === true,
-  ).length;
+  // ✅ CORREGIDO: Contar dispositivos dentro de procedimientos
+  const totalDispositivos = registros.reduce((total, record) => {
+    const dispositivosEnRegistro =
+      record.procedimientos?.filter((proc) => proc.tieneDispositivo === true)
+        .length || 0;
+    return total + dispositivosEnRegistro;
+  }, 0);
 
-  // Filtrar por "Activo" (no "Atendido")
+  // Filtrar por "Activo"
   const totalPacientesActivos = registros.filter(
     (r) => r.estadoPaciente === "Activo",
   ).length;
-
-  useEffect(() => {
-    initializeMockData();
-  }, []);
 
   return (
     <div className="p-6 space-y-4">
@@ -69,7 +68,7 @@ export default function RegistroDashboard() {
         </Button>
       </div>
 
-      {/* Quick Stats - Grid ajustado para 6 cards */}
+      {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {/* Total de Registros */}
         <Card className="p-4 bg-indigo-100 border-indigo-200">
@@ -97,16 +96,16 @@ export default function RegistroDashboard() {
           </p>
         </Card>
 
-        {/* Tienen Dispositivo */}
+        {/* ✅ Tienen Dispositivo - CORREGIDO */}
         <Card className="p-4 bg-purple-100 border-purple-200">
           <div className="flex items-center justify-between">
             <p className="text-purple-600 font-bold text-xs 2xl:text-sm">
-              Tienen Dispositivo
+              Total Dispositivos
             </p>
             <Cable className="w-6 h-6 text-purple-600" />
           </div>
           <p className="text-2xl font-bold text-purple-600 mt-1">
-            {totalTienenDispositivo}
+            {totalDispositivos}
           </p>
         </Card>
 

@@ -124,13 +124,6 @@ export const NOMBRE_DISPOSITIVO = [
 
 export const MATERIAL_SONDA = ["Siliconada", "PVC", "Latex"];
 
-export const RESULTADOS = [
-  "Exitoso",
-  "Requiere seguimiento",
-  "Rechazado",
-  "Fallido",
-];
-
 export const INCIDENCIAS = [
   "Derivación a emergencia",
   "Dolor excesivo",
@@ -142,6 +135,12 @@ export const INCIDENCIAS = [
 
 export const ESTADO_PACIENTE = ["Activo", "Inactivo", "Fallecido"];
 
+export const RESULTADO = [
+  "Exitoso",
+  "Requiere seguimiento",
+  "Rechazado",
+  "Fallido",
+];
 export const CHECKLIST_OPTIONS = ["Si", "No"];
 export const CUIDADOR_OPTIONS = ["Si", "No"];
 
@@ -152,31 +151,6 @@ export const CHECKLIST_ITEMS = [
   "Historial médico revisado",
   "Paciente identificado correctamente",
   "Protocolo de seguridad cumplido",
-];
-
-// Datos demo para gráficos
-export const DEMO_REGISTROS = [
-  {
-    id: "1",
-    fecha: "2024-01-15",
-    horaInicio: "09:00",
-    horaFin: "10:30",
-    duracion: 90,
-    paciente: "Juan Rodríguez",
-    dni: "12345678",
-    edad: 65,
-    zona: "Zona 1 - Centro",
-    distrito: "San Isidro",
-    diagnosticoPrincipal: "Artrosis",
-    procedimiento: "Fisioterapia",
-    profesionalACargo: "Lic. Carlos López",
-    resultado: "exitoso" as const,
-    incidencias: false,
-    procedimientoRepetido: false,
-    checklistCumplido: true,
-    cuidadorPrincipalPresente: true,
-    createdAt: "2024-01-15T09:00:00Z",
-  },
 ];
 
 // Datos para indicadores

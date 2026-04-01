@@ -98,8 +98,14 @@ export function ChartsGrid() {
   const topProcedimientos = useMemo(() => {
     const map = new Map<string, number>();
     filteredRegistros.forEach((r) => {
-      const proc = r.procedimiento || "Sin procedimiento";
-      map.set(proc, (map.get(proc) || 0) + 1);
+      if (r.procedimientos && r.procedimientos.length > 0) {
+        r.procedimientos.forEach((p) => {
+          const proc = p.procedimiento || "Sin procedimiento";
+          map.set(proc, (map.get(proc) || 0) + 1);
+        });
+      } else {
+        map.set("Sin procedimiento", (map.get("Sin procedimiento") || 0) + 1);
+      }
     });
 
     return Array.from(map.entries())

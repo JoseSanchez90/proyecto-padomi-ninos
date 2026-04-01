@@ -113,6 +113,12 @@ export function RegistroTable() {
     return `${day}/${month}/${year}`;
   };
 
+  // ✅ Helper para obtener nombres de procedimientos (evitar [object Object])
+  const getProcedimientosNames = (procs: any[] | undefined): string => {
+    if (!procs || procs.length === 0) return "N/A";
+    return procs.map((p) => p.procedimiento || "Sin nombre").join(", ");
+  };
+
   // Agregar al inicio del componente RegistroTable:
   const handleDeleteConfirm = (id: string, paciente: string) => {
     gooeyToast.warning("¿Eliminar registro?", {
@@ -165,8 +171,15 @@ export function RegistroTable() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Procedimiento</p>
-                  <p className="text-xs 2xl:text-sm font-medium">
-                    {truncate(record.procedimiento, 20)}
+                  <p
+                    className="text-xs 2xl:text-sm font-medium"
+                    title={getProcedimientosNames(record.procedimientos)}
+                  >
+                    {/* ✅ CORREGIDO: Extraer nombres de procedimientos */}
+                    {truncate(
+                      getProcedimientosNames(record.procedimientos),
+                      20,
+                    )}
                   </p>
                 </div>
                 <div>
@@ -222,7 +235,7 @@ export function RegistroTable() {
                     )
                   }
                   onClick={(e) => {
-                    e.stopPropagation(); // Evitar que se expanda/colapse al hacer clic en editar
+                    e.stopPropagation();
                     router.push(
                       `/dashboard/registrar-paciente?edit=${record.id}`,
                     );
@@ -263,6 +276,7 @@ export function RegistroTable() {
             </div>
 
             {/* Expanded Content */}
+            {/* Expanded Content - Sección corregida */}
             {expandedId === record.id && (
               <div className="p-4 border-t border-border bg-background/50">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-sm">
@@ -325,14 +339,6 @@ export function RegistroTable() {
                     </p>
                   </div>
 
-                  {/* Procedimiento */}
-                  <div>
-                    <p className="text-xs text-muted-foreground font-semibold mb-1">
-                      Procedimiento
-                    </p>
-                    <p className="text-foreground">{record.procedimiento}</p>
-                  </div>
-
                   {/* Profesional */}
                   <div>
                     <p className="text-xs text-muted-foreground font-semibold mb-1">
@@ -344,7 +350,112 @@ export function RegistroTable() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-4">
+                {/* ✅ NUEVA SECCIÓN: Procedimientos con Dispositivos Agrupados */}
+                <div className="mt-6 space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Procedimientos Realizados
+                  </h3>
+
+                  {record.procedimientos?.map((proc, idx) => (
+                    <div
+                      key={proc.id || idx}
+                      className="border border-border rounded-xl p-4 bg-white space-y-3"
+                    >
+                      {/* Header del procedimiento */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                          <h4 className="font-semibold text-foreground">
+                            {proc.procedimiento || "Sin nombre"}
+                          </h4>
+                        </div>
+                        <span className="px-2 py-1 rounded text-xs font-medium">
+                          {proc.resultado}
+                        </span>
+                      </div>
+
+                      {/* Dispositivo (si existe) */}
+                      {proc.tieneDispositivo && (
+                        <div className="ml-4 pl-4 border-l-2 border-purple-300 space-y-2">
+                          <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                            <Stethoscope className="w-4 h-4" />
+                            <span className="text-xs font-semibold">
+                              Dispositivo Utilizado
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                            {proc.nombreDispositivo && (
+                              <div>
+                                <span className="text-muted-foreground">
+                                  Tipo:
+                                </span>
+                                <p className="font-medium text-foreground">
+                                  {proc.nombreDispositivo}
+                                </p>
+                              </div>
+                            )}
+
+                            {proc.nombreDispositivo?.startsWith("Sonda") &&
+                              proc.materialSonda && (
+                                <div>
+                                  <span className="text-muted-foreground">
+                                    Material:
+                                  </span>
+                                  <p className="font-medium text-foreground">
+                                    {proc.materialSonda}
+                                  </p>
+                                </div>
+                              )}
+
+                            {proc.numeroDispositivo && (
+                              <div>
+                                <span className="text-muted-foreground">
+                                  N° Dispositivo:
+                                </span>
+                                <p className="font-medium text-foreground">
+                                  {proc.numeroDispositivo}
+                                </p>
+                              </div>
+                            )}
+
+                            {proc.fechaColocacion && (
+                              <div>
+                                <span className="text-muted-foreground">
+                                  Colocado:
+                                </span>
+                                <p className="font-medium text-foreground">
+                                  {formatDate(proc.fechaColocacion)}
+                                </p>
+                              </div>
+                            )}
+
+                            {proc.fechaCambio && (
+                              <div>
+                                <span className="text-muted-foreground">
+                                  Cambio:
+                                </span>
+                                <p className="font-medium text-foreground">
+                                  {formatDate(proc.fechaCambio)}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Si no tiene dispositivo */}
+                      {!proc.tieneDispositivo && (
+                        <p className="text-xs text-muted-foreground ml-4 italic">
+                          Sin dispositivo registrado
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Resto de secciones (Imágenes, Incidencias, Checkboxes) */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
                   {/* Imágenes */}
                   {record.imagenes && record.imagenes.length > 0 && (
                     <div className="col-span-2 md:col-span-2 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl border border-blue-200 dark:border-blue-900/30">
@@ -381,7 +492,7 @@ export function RegistroTable() {
 
                   {/* Incidencias */}
                   {record.incidencias && (
-                    <div className="col-span-2 md:col-span-1 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                    <div className="col-span-2 md:col-span-2 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
                       <p className="flex items-center gap-2 text-sm text-yellow-900 dark:text-yellow-200 font-semibold mb-2">
                         <TriangleAlert className="w-4 h-4 text-yellow-600" />
                         Incidencia Reportada
@@ -402,71 +513,10 @@ export function RegistroTable() {
                       </div>
                     </div>
                   )}
-
-                  {/* Dispositivo Médico */}
-                  {record.tieneDispositivo && (
-                    <div className="col-span-2 md:col-span-1 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-900/30">
-                      <p className="text-xs text-purple-900 dark:text-purple-200 font-semibold mb-2 flex items-center gap-1">
-                        <Stethoscope className="w-3 h-3" />
-                        Dispositivo Médico
-                      </p>
-
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Tipo:</span>
-                          <span className="font-medium">
-                            {record.nombreDispositivo}
-                          </span>
-                        </div>
-
-                        {record.nombreDispositivo?.startsWith("Sonda") &&
-                          record.materialSonda && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">
-                                Material:
-                              </span>
-                              <span className="font-medium">
-                                {record.materialSonda}
-                              </span>
-                            </div>
-                          )}
-
-                        {record.numeroDispositivo && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">N°:</span>
-                            <span className="font-medium">
-                              {record.numeroDispositivo}
-                            </span>
-                          </div>
-                        )}
-
-                        {record.fechaColocacion && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                              Colocado:
-                            </span>
-                            <span className="font-medium">
-                              {formatDate(record.fechaColocacion)}
-                            </span>
-                          </div>
-                        )}
-
-                        {record.fechaCambio && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                              Cambio:
-                            </span>
-                            <span className="font-medium">
-                              {formatDate(record.fechaCambio)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
+
+                {/* Checkboxes */}
                 <div className="mt-4">
-                  {/* Checkboxes de estado */}
                   <div className="flex flex-wrap gap-4 pt-2 border-t border-border/50">
                     <label className="flex items-center gap-2 text-xs cursor-default">
                       <Checkbox

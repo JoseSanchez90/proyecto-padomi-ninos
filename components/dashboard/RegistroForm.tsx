@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRegistro } from "@/lib/contexts/RegistroContext";
+import { ProcedimientoItem } from "@/lib/types";
 import {
   ZONAS,
   DISTRITOS,
   PROCEDIMIENTOS,
-  RESULTADOS,
   DIAGNOSTICOS,
   INCIDENCIAS,
   NOMBRE_DISPOSITIVO,
+  RESULTADO,
   MATERIAL_SONDA,
   CHECKLIST_OPTIONS,
   CUIDADOR_OPTIONS,
@@ -29,7 +30,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
 import { ImageUpload } from "./ImageUpload";
 import { gooeyToast } from "@/components/ui/goey-toaster";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Plus, Trash2 } from "lucide-react";
 import { getLicenciadosActivos } from "@/lib/helpers";
 
 interface RegistroFormProps {
@@ -84,6 +86,12 @@ export function RegistroForm({
   const [isLoading, setIsLoading] = useState(false);
   const [procedure, setProcedure] = useState("");
   const router = useRouter();
+  const [licenciadosKey, setLicenciadosKey] = useState(0);
+
+  // Usar esta key como dependencia:
+  const licenciadosActivos = useMemo(() => {
+    return getLicenciadosActivos();
+  }, [licenciadosKey]); // ← Se re-evalúa cuando cambia licenciadosKey
 
   // Estados para imágenes
   const [imagenes, setImagenes] = useState<string[]>(() => {
@@ -109,7 +117,7 @@ export function RegistroForm({
         zona: initialData.zona || "",
         distrito: initialData.distrito || "",
         diagnosticoPrincipal: initialData.diagnosticoPrincipal || "",
-        procedimiento: initialData.procedimiento || "",
+        procedimientos: initialData.procedimientos || [""],
         tieneDispositivo: initialData.tieneDispositivo ? "Si" : "",
         nombreDispositivo: initialData.nombreDispositivo || "",
         materialSonda: initialData.materialSonda || "",
@@ -145,7 +153,7 @@ export function RegistroForm({
       zona: "",
       distrito: "",
       diagnosticoPrincipal: "",
-      procedimiento: "",
+      procedimientos: [],
       tieneDispositivo: "",
       nombreDispositivo: "",
       materialSonda: "",
@@ -163,6 +171,75 @@ export function RegistroForm({
       cuidadorPrincipalPresente: "",
     };
   });
+
+  // Estado inicial con campos de dispositivo
+  const [procedimientos, setProcedimientos] = useState<ProcedimientoItem[]>(
+    editMode && initialData?.procedimientos
+      ? initialData.procedimientos
+      : [
+          {
+            id: `proc_${Date.now()}`,
+            procedimiento: "",
+            diagnosticoPrincipal: "",
+            horaInicio: formData.horaInicio,
+            horaFin: formData.horaFin,
+            duracion: formData.duracion,
+            resultado: "",
+            tieneDispositivo: false,
+            nombreDispositivo: undefined,
+            materialSonda: undefined,
+            numeroDispositivo: undefined,
+            fechaColocacion: undefined,
+            fechaCambio: undefined,
+          },
+        ],
+  );
+
+  // Función para agregar nuevo procedimiento
+  const addProcedimiento = () => {
+    const newProc: ProcedimientoItem = {
+      id: `proc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      procedimiento: "",
+      diagnosticoPrincipal: "",
+      horaInicio: "",
+      horaFin: "",
+      duracion: 0,
+      resultado: "",
+      tieneDispositivo: false,
+      nombreDispositivo: undefined,
+      materialSonda: undefined,
+      numeroDispositivo: undefined,
+      fechaColocacion: undefined,
+      fechaCambio: undefined,
+    };
+    setProcedimientos([...procedimientos, newProc]);
+  };
+
+  // Función para eliminar procedimiento
+  const removeProcedimiento = (index: number) => {
+    if (procedimientos.length > 1) {
+      setProcedimientos(procedimientos.filter((_, i) => i !== index));
+    }
+  };
+
+  // Función para actualizar un procedimiento específico
+  const updateProcedimiento = (
+    index: number,
+    field: keyof ProcedimientoItem,
+    value: any,
+  ) => {
+    setProcedimientos((prev) =>
+      prev.map((proc, i) => (i === index ? { ...proc, [field]: value } : proc)),
+    );
+
+    // Si es el primer procedimiento y actualizamos hora/duración, sincronizar con formData
+    if (
+      index === 0 &&
+      (field === "horaInicio" || field === "horaFin" || field === "duracion")
+    ) {
+      handleInputChange(field, value);
+    }
+  };
 
   // Efecto para sincronizar si initialData cambia (útil si se carga asíncronamente)
   useEffect(() => {
@@ -183,7 +260,7 @@ export function RegistroForm({
         distrito: initialData.distrito || prev.distrito,
         diagnosticoPrincipal:
           initialData.diagnosticoPrincipal || prev.diagnosticoPrincipal,
-        procedimiento: initialData.procedimiento || prev.procedimiento,
+        procedimientos: initialData.procedimientos || prev.procedimientos,
         tieneDispositivo: initialData.tieneDispositivo
           ? "Si"
           : prev.tieneDispositivo,
@@ -219,6 +296,10 @@ export function RegistroForm({
       if (initialData.imagenes) {
         setImagenes(initialData.imagenes);
       }
+      // Cargar procedimientos múltiples
+      if (initialData.procedimientos && initialData.procedimientos.length > 0) {
+        setProcedimientos(initialData.procedimientos);
+      }
     }
   }, [editMode, initialData]);
 
@@ -246,6 +327,53 @@ export function RegistroForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // ✅ 1. Validar que cada procedimiento tenga nombre
+    if (procedimientos.some((p) => !p.procedimiento?.trim())) {
+      gooeyToast.error("Procedimientos incompletos", {
+        description: "Seleccione al menos un procedimiento",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // ✅ 2. Validar campos requeridos del registro principal
+    if (!formData.paciente || !formData.dni || !formData.fecha) {
+      gooeyToast.error("Campos requeridos", {
+        description: "Completa paciente, DNI y fecha",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // ✅ 3. Validar diagnóstico (nivel registro)
+    if (!formData.diagnosticoPrincipal) {
+      gooeyToast.error("Diagnóstico requerido", {
+        description: "Seleccione un diagnóstico principal",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // ✅ 4. Validar resultado (nivel registro)
+    if (!formData.resultado) {
+      gooeyToast.error("Resultado requerido", {
+        description: "Seleccione el resultado del procedimiento",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // ✅ 5. Validar profesional a cargo
+    if (!formData.profesionalACargo) {
+      gooeyToast.error("Profesional requerido", {
+        description: "Seleccione el profesional a cargo",
+        duration: 4000,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
     setIsLoading(true);
     try {
       const registroData = {
@@ -260,7 +388,6 @@ export function RegistroForm({
         zona: formData.zona,
         distrito: formData.distrito,
         diagnosticoPrincipal: formData.diagnosticoPrincipal,
-        procedimiento: formData.procedimiento,
         tieneDispositivo: formData.tieneDispositivo === "Si",
         nombreDispositivo: formData.nombreDispositivo || undefined,
         materialSonda: formData.materialSonda || undefined,
@@ -281,19 +408,29 @@ export function RegistroForm({
         procedimientoRepetido: formData.procedimientoRepetido === "Si",
         checklistCumplido: formData.checklistCumplido === "Si",
         cuidadorPrincipalPresente: formData.cuidadorPrincipalPresente === "Si",
+        procedimientos: procedimientos
+          .filter((p) => p.procedimiento)
+          .map((p) => ({
+            ...p,
+            nombreDispositivo: p.nombreDispositivo || undefined,
+            materialSonda: p.materialSonda || undefined,
+            numeroDispositivo: p.numeroDispositivo || undefined,
+            fechaColocacion: p.fechaColocacion || undefined,
+            fechaCambio: p.fechaCambio || undefined,
+          })),
         imagenes: imagenes,
       };
 
       if (editMode && initialData?.id) {
         // MODO EDICIÓN: Actualizar registro existente
-        updateRegistro(initialData.id, registroData);
+        await updateRegistro(initialData.id, registroData);
         gooeyToast.success("Registro actualizado", {
           description: `Los cambios han sido guardados`,
           duration: 3000,
         });
       } else {
         // MODO CREACIÓN: Agregar nuevo registro
-        addRegistro(registroData);
+        await addRegistro(registroData);
         gooeyToast.success("Registro guardado", {
           description: `El paciente ha sido registrado correctamente`,
           duration: 3000,
@@ -322,7 +459,7 @@ export function RegistroForm({
           zona: "",
           distrito: "",
           diagnosticoPrincipal: "",
-          procedimiento: "",
+          procedimientos: [],
           tieneDispositivo: "",
           nombreDispositivo: "",
           materialSonda: "",
@@ -541,17 +678,25 @@ export function RegistroForm({
           <FieldGroup className="col-span-2 lg:col-span-2">
             <Field>
               <FieldLabel className="text-xs">Profesional a Cargo *</FieldLabel>
+
               <Select
                 value={formData.profesionalACargo}
                 onValueChange={(v) => handleInputChange("profesionalACargo", v)}
+                disabled={licenciadosActivos.length === 0}
               >
                 <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Seleccione" />
+                  <SelectValue
+                    placeholder={
+                      licenciadosActivos.length === 0
+                        ? "Sin licenciados registrados"
+                        : "Seleccione"
+                    }
+                  />
                 </SelectTrigger>
+
                 <SelectContent className="max-h-48">
-                  {/* Obtener licenciados activos */}
-                  {getLicenciadosActivos().length > 0 ? (
-                    getLicenciadosActivos().map((prof, index) => (
+                  {licenciadosActivos.length > 0 ? (
+                    licenciadosActivos.map((prof, index) => (
                       <SelectItem key={`${prof}-${index}`} value={prof}>
                         {prof}
                       </SelectItem>
@@ -564,10 +709,9 @@ export function RegistroForm({
                 </SelectContent>
               </Select>
 
-              {/* Mensaje informativo si no hay licenciados */}
-              {getLicenciadosActivos().length === 0 && (
+              {licenciadosActivos.length === 0 && (
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Registra licenciados en{" "}
+                  Registra en{" "}
                   <button
                     type="button"
                     onClick={() => router.push("/dashboard/personal")}
@@ -579,11 +723,10 @@ export function RegistroForm({
               )}
             </Field>
           </FieldGroup>
-          <FieldGroup className="col-span-2 lg:col-span-3">
+
+          <FieldGroup className="lg:col-span-2">
             <Field>
-              <FieldLabel className="text-xs">
-                Diagnóstico Principal *
-              </FieldLabel>
+              <FieldLabel className="text-xs">Diagnóstico *</FieldLabel>
               <Select
                 value={formData.diagnosticoPrincipal}
                 onValueChange={(v) =>
@@ -594,8 +737,8 @@ export function RegistroForm({
                   <SelectValue placeholder="Seleccione" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DIAGNOSTICOS.map((diag, index) => (
-                    <SelectItem key={`${diag}-${index}`} value={diag}>
+                  {DIAGNOSTICOS.map((diag, i) => (
+                    <SelectItem key={`${diag}-${i}`} value={diag}>
                       {diag}
                     </SelectItem>
                   ))}
@@ -603,166 +746,275 @@ export function RegistroForm({
               </Select>
             </Field>
           </FieldGroup>
-          <FieldGroup className="col-span-2 lg:col-span-4">
+
+          {/* ========== PROCEDIMIENTOS (Layout 100% Horizontal) ========== */}
+          <FieldGroup className="col-span-2 lg:col-span-8">
             <Field>
-              <FieldLabel className="text-xs">Procedimiento *</FieldLabel>
-              <Select
-                value={formData.procedimiento}
-                onValueChange={(v) => handleInputChange("procedimiento", v)}
-              >
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Seleccione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROCEDIMIENTOS.map((proc, index) => (
-                    <SelectItem key={`${proc}-${index}`} value={proc}>
-                      {proc}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          </FieldGroup>
-
-          {/* ¿Tiene Dispositivo? */}
-          <FieldGroup className="col-span-1 lg:col-span-2">
-            <Field>
-              <FieldLabel className="text-xs">¿Tiene Dispositivo? *</FieldLabel>
-              <Select
-                value={formData.tieneDispositivo}
-                onValueChange={(v: "" | "Si" | "No") => {
-                  handleInputChange("tieneDispositivo", v);
-                  if (v === "No") {
-                    handleInputChange("nombreDispositivo", "");
-                    handleInputChange("materialSonda", "");
-                  }
-                }}
-              >
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Seleccione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="No">No</SelectItem>
-                  <SelectItem value="Si">Sí</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-          </FieldGroup>
-
-          {/* Nombre Dispositivo (solo si tiene dispositivo) */}
-          {formData.tieneDispositivo === "Si" && (
-            <FieldGroup className="col-span-1 lg:col-span-3">
-              <Field>
-                <FieldLabel className="text-xs">Nombre Dispositivo</FieldLabel>
-                <Select
-                  value={formData.nombreDispositivo}
-                  onValueChange={(v) => {
-                    handleInputChange("nombreDispositivo", v);
-                    if (!v.startsWith("Sonda")) {
-                      handleInputChange("materialSonda", "");
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Seleccione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {NOMBRE_DISPOSITIVO.map((tipo, index) => (
-                      <SelectItem key={`${tipo}-${index}`} value={tipo}>
-                        {tipo}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            </FieldGroup>
-          )}
-
-          {/* Material de Sonda (solo si el dispositivo empieza con "Sonda") */}
-          {formData.tieneDispositivo === "Si" &&
-            formData.nombreDispositivo?.startsWith("Sonda") && (
-              <FieldGroup className="col-span-1 lg:col-span-2">
-                <Field>
-                  <FieldLabel className="text-xs">Material de Sonda</FieldLabel>
-                  <Select
-                    value={formData.materialSonda}
-                    onValueChange={(v: "" | "Siliconada" | "PVC" | "Latex") =>
-                      handleInputChange("materialSonda", v)
-                    }
+              <FieldLabel className="text-xs">Procedimientos *</FieldLabel>
+              <div className="space-y-4">
+                {procedimientos.map((proc, index) => (
+                  <div
+                    key={proc.id || index}
+                    className="p-4 border border-border rounded-xl bg-muted/30"
                   >
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Seleccione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MATERIAL_SONDA.map((material, index) => (
-                        <SelectItem
-                          key={`${material}-${index}`}
-                          value={material}
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Procedimiento #{index + 1}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {index === 0 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={addProcedimiento}
+                            className="h-8 w-8 text-blue-600 hover:text-white bg-blue-200 hover:bg-blue-400 shrink-0"
+                            title="Agregar procedimiento"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {procedimientos.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeProcedimiento(index)}
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
+                            title="Eliminar procedimiento"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ✅ GRID ÚNICO - Sin anidamiento */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                      {/* Columna 1-4: Procedimiento */}
+                      <div className="lg:col-span-4 space-y-2">
+                        <FieldLabel className="text-xs">
+                          Nombre del Procedimiento *
+                        </FieldLabel>
+                        <Select
+                          value={proc.procedimiento}
+                          onValueChange={(v) =>
+                            updateProcedimiento(index, "procedimiento", v)
+                          }
                         >
-                          {material}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </FieldGroup>
-            )}
+                          <SelectTrigger className="h-9 text-sm w-full">
+                            <SelectValue
+                              placeholder={`Procedimiento ${index + 1}`}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PROCEDIMIENTOS.map((procItem, i) => (
+                              <SelectItem
+                                key={`${procItem}-${i}`}
+                                value={procItem}
+                              >
+                                {procItem}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-          {/* Número de Dispositivo (solo si tiene dispositivo) */}
-          {formData.tieneDispositivo === "Si" && (
-            <FieldGroup className="lg:col-span-2">
-              <Field>
-                <FieldLabel className="text-xs">
-                  Número de Dispositivo
-                </FieldLabel>
-                <Input
-                  type="text"
-                  value={formData.numeroDispositivo}
-                  onChange={(e) =>
-                    handleInputChange("numeroDispositivo", e.target.value)
-                  }
-                  className="h-9 text-xs"
-                  placeholder="Ej. 123"
-                  minLength={1}
-                  maxLength={3}
-                />
-              </Field>
-            </FieldGroup>
-          )}
+                      {/* Columna 5-12: Todos los campos de dispositivo */}
+                      <div className="lg:col-span-8">
+                        {/* FILA 1: ¿Tiene? + Nombre Dispositivo */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <FieldLabel className="text-xs">
+                              ¿Tiene Dispositivo?
+                            </FieldLabel>
+                            <Select
+                              value={proc.tieneDispositivo ? "Si" : "No"}
+                              onValueChange={(v: "Si" | "No") => {
+                                const tiene = v === "Si";
+                                updateProcedimiento(
+                                  index,
+                                  "tieneDispositivo",
+                                  tiene,
+                                );
+                                if (!tiene) {
+                                  updateProcedimiento(
+                                    index,
+                                    "nombreDispositivo",
+                                    undefined,
+                                  );
+                                  updateProcedimiento(
+                                    index,
+                                    "materialSonda",
+                                    undefined,
+                                  );
+                                  updateProcedimiento(
+                                    index,
+                                    "numeroDispositivo",
+                                    undefined,
+                                  );
+                                  updateProcedimiento(
+                                    index,
+                                    "fechaColocacion",
+                                    undefined,
+                                  );
+                                  updateProcedimiento(
+                                    index,
+                                    "fechaCambio",
+                                    undefined,
+                                  );
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-9 text-sm">
+                                <SelectValue placeholder="Seleccione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="No">No</SelectItem>
+                                <SelectItem value="Si">Sí</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-          {/* Fecha de Colocación (solo si tiene dispositivo) */}
-          {formData.tieneDispositivo === "Si" && (
-            <FieldGroup className="col-span-1 lg:col-span-2">
-              <Field>
-                <FieldLabel className="text-xs">Fecha Colocación</FieldLabel>
-                <Input
-                  type="date"
-                  value={formData.fechaColocacion}
-                  onChange={(e) =>
-                    handleInputChange("fechaColocacion", e.target.value)
-                  }
-                  className="h-9 text-xs"
-                />
-              </Field>
-            </FieldGroup>
-          )}
+                          <div className="space-y-2">
+                            <FieldLabel className="text-xs">
+                              Nombre Dispositivo
+                            </FieldLabel>
+                            <Select
+                              value={proc.nombreDispositivo || ""}
+                              onValueChange={(v) => {
+                                updateProcedimiento(
+                                  index,
+                                  "nombreDispositivo",
+                                  v,
+                                );
+                                if (!v.startsWith("Sonda")) {
+                                  updateProcedimiento(
+                                    index,
+                                    "materialSonda",
+                                    undefined,
+                                  );
+                                }
+                              }}
+                              disabled={!proc.tieneDispositivo}
+                            >
+                              <SelectTrigger className="h-9 text-sm">
+                                <SelectValue placeholder="Seleccione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {NOMBRE_DISPOSITIVO.map((tipo, i) => (
+                                  <SelectItem key={`${tipo}-${i}`} value={tipo}>
+                                    {tipo}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
 
-          {/* Fecha Próxima Colocación (solo si tiene dispositivo) */}
-          {formData.tieneDispositivo === "Si" && (
-            <FieldGroup className="col-span-1 lg:col-span-2">
-              <Field>
-                <FieldLabel className="text-xs">Fecha Cambio</FieldLabel>
-                <Input
-                  type="date"
-                  value={formData.fechaCambio}
-                  onChange={(e) =>
-                    handleInputChange("fechaCambio", e.target.value)
-                  }
-                  className="h-9 text-xs"
-                />
-              </Field>
-            </FieldGroup>
-          )}
+                        {/* FILA 2: Material de Sonda (si es sonda) */}
+                        {proc.nombreDispositivo?.startsWith("Sonda") && (
+                          <div className="mt-3">
+                            <FieldLabel className="text-xs">
+                              Material de Sonda
+                            </FieldLabel>
+                            <Select
+                              value={proc.materialSonda || ""}
+                              onValueChange={(
+                                v: "Siliconada" | "PVC" | "Latex" | "",
+                              ) =>
+                                updateProcedimiento(index, "materialSonda", v)
+                              }
+                              disabled={!proc.tieneDispositivo}
+                            >
+                              <SelectTrigger className="h-9 text-sm">
+                                <SelectValue placeholder="Seleccione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {MATERIAL_SONDA.map((material, i) => (
+                                  <SelectItem
+                                    key={`${material}-${i}`}
+                                    value={material}
+                                  >
+                                    {material}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+
+                        {/* FILA 3: Número + Colocado + Cambio (3 EN UNA SOLA FILA) */}
+                        {proc.tieneDispositivo && (
+                          <div className="grid grid-cols-3 gap-3 mt-3">
+                            <div>
+                              <FieldLabel className="text-xs">
+                                Número
+                              </FieldLabel>
+                              <Input
+                                type="text"
+                                value={proc.numeroDispositivo || ""}
+                                onChange={(e) =>
+                                  updateProcedimiento(
+                                    index,
+                                    "numeroDispositivo",
+                                    e.target.value,
+                                  )
+                                }
+                                className="h-9 text-xs"
+                                placeholder="123"
+                                maxLength={3}
+                                disabled={!proc.tieneDispositivo}
+                              />
+                            </div>
+
+                            <div>
+                              <FieldLabel className="text-xs">
+                                Colocado
+                              </FieldLabel>
+                              <Input
+                                type="date"
+                                value={proc.fechaColocacion || ""}
+                                onChange={(e) =>
+                                  updateProcedimiento(
+                                    index,
+                                    "fechaColocacion",
+                                    e.target.value,
+                                  )
+                                }
+                                className="h-9 text-xs"
+                                disabled={!proc.tieneDispositivo}
+                              />
+                            </div>
+
+                            <div>
+                              <FieldLabel className="text-xs">
+                                Cambio
+                              </FieldLabel>
+                              <Input
+                                type="date"
+                                value={proc.fechaCambio || ""}
+                                onChange={(e) =>
+                                  updateProcedimiento(
+                                    index,
+                                    "fechaCambio",
+                                    e.target.value,
+                                  )
+                                }
+                                className="h-9 text-xs"
+                                disabled={!proc.tieneDispositivo}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Field>
+          </FieldGroup>
         </div>
 
         {/* Row 3: Checkboxes y Resultado */}
@@ -844,7 +1096,7 @@ export function RegistroForm({
                   <SelectValue placeholder="Seleccione" />
                 </SelectTrigger>
                 <SelectContent>
-                  {RESULTADOS.map((resultado, index) => (
+                  {RESULTADO.map((resultado, index) => (
                     <SelectItem key={`${resultado}-${index}`} value={resultado}>
                       {resultado}
                     </SelectItem>

@@ -203,8 +203,11 @@ export default function IndicadoresPage() {
                   </span>
                   <span className="font-semibold">
                     {
-                      new Set(filteredRegistros.map((r) => r.procedimiento))
-                        .size
+                      new Set(
+                        filteredRegistros.flatMap(
+                          (r) => r.procedimientos || [],
+                        ),
+                      ).size
                     }
                   </span>
                 </p>

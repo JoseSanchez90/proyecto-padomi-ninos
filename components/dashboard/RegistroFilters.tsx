@@ -7,7 +7,7 @@ import {
   ZONAS,
   DISTRITOS,
   PROCEDIMIENTOS,
-  RESULTADOS,
+  RESULTADO,
   DIAGNOSTICOS,
   ESTADO_PACIENTE,
   NOMBRE_DISPOSITIVO,
@@ -445,7 +445,7 @@ export function RegistroFilters() {
                     <SelectValue placeholder="Seleccionar" />
                   </SelectTrigger>
                   <SelectContent className="text-xs">
-                    {RESULTADOS.map((resultado, index) => (
+                    {RESULTADO.map((resultado, index) => (
                       <SelectItem
                         key={`${resultado}-${index}`}
                         value={resultado}

@@ -36,7 +36,10 @@ function matchesFilters(record: RegistroRecord, filters: FilterState): boolean {
   if (filters.distrito && record.distrito !== filters.distrito) return false;
 
   // Procedimiento
-  if (filters.procedimiento && record.procedimiento !== filters.procedimiento)
+  if (
+    filters.procedimiento &&
+    !record.procedimientos?.some((p) => p.procedimiento === filters.procedimiento)
+  )
     return false;
 
   // Profesional a cargo

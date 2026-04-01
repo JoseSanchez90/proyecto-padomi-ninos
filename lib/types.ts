@@ -7,6 +7,26 @@ export interface User {
   role: string;
 }
 
+// export type resultado = "Exitoso" | "Requiere seguimiento" | "Fallido" | "Rechazado";
+
+// Tipo ProcedimientoItem con campos de dispositivo
+export type ProcedimientoItem = {
+  id: string;
+  procedimiento: string;
+  diagnosticoPrincipal: string;
+  horaInicio: string;
+  horaFin: string;
+  duracion: number;
+  resultado: string;
+  // Campos de dispositivo POR procedimiento
+  tieneDispositivo: boolean;
+  nombreDispositivo?: string;
+  materialSonda?: "Siliconada" | "PVC" | "Latex";
+  numeroDispositivo?: string;
+  fechaColocacion?: string;
+  fechaCambio?: string;
+};
+
 export interface RegistroRecord {
   id: string;
   fecha: string;
@@ -20,7 +40,7 @@ export interface RegistroRecord {
   zona: string;
   distrito: string;
   diagnosticoPrincipal: string;
-  procedimiento: string;
+  procedimientos: ProcedimientoItem[];
   tieneDispositivo: boolean;
   numeroDispositivo?: string;
   nombreDispositivo?: string;
@@ -28,7 +48,7 @@ export interface RegistroRecord {
   fechaColocacion?: string;
   fechaCambio?: string;
   profesionalACargo: string;
-  resultado: "Exitoso" | "Requiere seguimiento" | "Fallido" | "Rechazado";
+  resultado: string;
   incidencias: boolean;
   tipoIncidencia?: string;
   descripcionIncidente?: string;

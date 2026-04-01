@@ -13,10 +13,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { FieldGroup, Field, FieldLabel } from "@/components/ui/field";
+import { FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -45,7 +46,7 @@ import {
   Award,
 } from "lucide-react";
 import { calcularEdad } from "@/components/dashboard/RegistroForm";
-import { initializeMockData } from "@/lib/mockData";
+// import { initializeMockData } from "@/lib/mockData";
 import { gooeyToast } from "@/components/ui/goey-toaster";
 
 // Tipos locales (puedes moverlos a lib/types.ts)
@@ -84,6 +85,7 @@ export default function GestionPersonalPage() {
   const [editingPerson, setEditingPerson] = useState<PersonalRecord | null>(
     null,
   );
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const [formData, setFormData] = useState({
     dni: "",
@@ -99,37 +101,35 @@ export default function GestionPersonalPage() {
     licenciaProfesional: "",
   });
 
-  useEffect(() => {
-    initializeMockData();
-  }, []);
+  // useEffect(() => {
+  //   initializeMockData();
+  // }, []);
 
+  // ✅ COMBINAR los dos useEffect de carga en uno solo + marcar como inicializado
   useEffect(() => {
     const stored = localStorage.getItem("padomi_personal");
     if (stored) {
       try {
-        setPersonal(JSON.parse(stored));
+        const data = JSON.parse(stored);
+        setPersonal(data);
+        console.log("✅ Personal cargado:", data.length, "registros");
       } catch (error) {
-        console.error("Error loading personal:", error);
+        console.error("❌ Error loading personal:", error);
       }
     }
-  }, []);
-
-  // Cargar datos de localStorage al montar
-  useEffect(() => {
-    const stored = localStorage.getItem("padomi_personal");
-    if (stored) {
-      try {
-        setPersonal(JSON.parse(stored));
-      } catch (error) {
-        console.error("Error loading personal:", error);
-      }
-    }
-  }, []);
+    // ✅ Marcar como inicializado DESPUÉS de intentar cargar
+    setIsInitialized(true);
+  }, []); // ← Solo se ejecuta al montar
 
   // Guardar en localStorage cuando cambie personal
   useEffect(() => {
+    // ❌ NO guardar durante la carga inicial
+    if (!isInitialized) return;
+
+    // ✅ Guardar solo si personal tiene contenido o es diferente de vacío
     localStorage.setItem("padomi_personal", JSON.stringify(personal));
-  }, [personal]);
+    console.log("💾 Personal guardado:", personal.length, "registros");
+  }, [personal, isInitialized]); // ← Agregar isInitialized como dependencia
 
   // Calcular edad cuando cambia fechaNacimiento
   useEffect(() => {
@@ -330,6 +330,11 @@ export default function GestionPersonalPage() {
                   ? "Editar Enfermero"
                   : "Registrar Nuevo Enfermero"}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                {editingPerson
+                  ? "Formulario para actualizar los datos del enfermero seleccionado"
+                  : "Formulario para registrar un nuevo enfermero en el sistema"}
+              </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4">
